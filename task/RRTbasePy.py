@@ -31,10 +31,10 @@ class RRTMap:
         self.Red = (255, 0, 0)
         self.white = (255, 255, 255)
 
-    def drawMap(self):
+    def drawMap(self,obstacles):
         pygame.draw.circle(self.map, self.Green, self.start, self.nodeRad + 5, 0)
         pygame.draw.circle(self.map, self.Green, self.goal, self.nodeRad + 20, 1)
-        self.drawObs((obstacles))
+        self.drawObs(obstacles)
 
     def drawPath(self):
         pass
@@ -43,7 +43,7 @@ class RRTMap:
         obstaclesList = obstacles.copy()
         while (len(obstaclesList) > 0):
             obstacle = obstaclesList.pop(0)
-            pygame.draw.rect(selfmap, self.grey, obstacle)
+            pygame.draw.rect(self.map, self.grey, obstacle)
 
 
 class RRTGraph:
@@ -93,9 +93,9 @@ class RRTGraph:
                     startgoalcol = True
                 else:
                     startgoalcol = False
-                obs.append(rectang)
-            self.obstacles = obs.copy()
-            return obs
+            obs.append(rectang)
+        self.obstacles = obs.copy()
+        return obs
 
 
     def add_node(self, n, x, y):
@@ -103,7 +103,7 @@ class RRTGraph:
         self.y.append(y)
 
 
-    def remove_node(self):
+    def remove_node(self,n):
         self.x.pop(n)
         self.y.pop(n)
 
@@ -131,6 +131,7 @@ class RRTGraph:
     def sample_envir(self):
         x = int(random.uniform(0, self.mapw))
         y = int(random.uniform(0, self.maph))
+        return x,y
 
 
     def nearest(self):
@@ -146,7 +147,7 @@ class RRTGraph:
             if rectang.collidepoint(x, y):
                 self.remove_node(n)
                 return False
-            return True
+        return True
 
 
     def crossObstacle(self, x1, x2, y1, y2):
@@ -159,7 +160,7 @@ class RRTGraph:
                 y = y1 * u + y2 * (1 - u)
                 if rectang.collidepoint(x, y):
                     return True
-            return False
+        return False
 
 
     def connect(self, n1, n2):
