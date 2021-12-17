@@ -1,3 +1,4 @@
+# Main script. RRTbasePy.py contains the classes and methods used here.
 import pygame
 from RRTbasePy import RRTGraph
 from RRTbasePy import RRTMap

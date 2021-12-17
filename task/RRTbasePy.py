@@ -1,9 +1,15 @@
+# This is the file that contains the classes and methods used in RRT.py
 import random
 import math
 import pygame
 
+# Pygame coordinate system:
+# - origin in top left
+# - positive x pointing right
+# - positive y pointing down
 
-class RRTMap:
+
+class RRTMap: # for visualisation. Methods draw the map, obstacles and path
     def __init__(self, start, goal, MapDimensions, obsdim, obsnum):
         # setup variables
         self.start = start
@@ -21,11 +27,11 @@ class RRTMap:
         self.edgeThickness = 1
 
         self.obstacles = []
-        self.obsdim = obsdim
-        self.obsNumber = obsnum
+        self.obsdim = obsdim # dimensions of the obstacles
+        self.obsNumber = obsnum # total number of obstacles
 
         # Different colors
-        self.grey = (70, 70, 70)
+        self.grey = (70, 70, 70) # RGB codes
         self.Blue = (0, 0, 255)
         self.Green = (0, 255, 0)
         self.Red = (255, 0, 0)
@@ -42,14 +48,14 @@ class RRTMap:
         for node in path:
             pygame.draw.circle(self.map, self.Red, node, self.nodeRad+3, 0)
 
-    def drawObs(self, obstacles):
+    def drawObs(self, obstacles): # draws obstacles
         obstaclesList = obstacles.copy()
         while (len(obstaclesList) > 0):
             obstacle = obstaclesList.pop(0)
             pygame.draw.rect(self.map, self.grey, obstacle)
 
 
-class RRTGraph:
+class RRTGraph: # this class contains the methods that provide the RRT functionality
     def __init__(self, start, goal, MapDimensions, obsdim, obsnum):
         (x, y) = start
         self.start = start
@@ -57,9 +63,11 @@ class RRTGraph:
         self.goalFlag = False
         self.MapDimensions = MapDimensions
         self.maph, self.mapw = self.MapDimensions
-        self.x = []
-        self.y = []
-        self.parent = []
+        
+        # lists to store nodes (that are added to the tree):
+        self.x = [] # list to store the x coordinate of nodes (of the tree)
+        self.y = [] # list to store the y coordinate of nodes (of the tree)
+        self.parent = [] # list to store the parent-id of nodes of the tree
 
         # initialize the tree
         self.x.append(x)
@@ -74,14 +82,16 @@ class RRTGraph:
         # path
         self.goalstate = None
         self.path = []
-
-    def makeRandomRect(self):
+    
+    # The next 2 methods generate random obstacles:
+    
+    def makeRandomRect(self): # random x, y coordinates (upper left corner) | AANPASSEN
         uppercornerx = int(random.uniform(0, self.mapw - self.obsDim))
         uppercornery = int(random.uniform(0, self.maph - self.obsDim))
 
         return (uppercornerx, uppercornery)
 
-    def makeobs(self):
+    def makeobs(self): # creates the obstacles | AANPASSEN
         obs = []
 
         for i in range(0, self.obsNum):
@@ -98,31 +108,32 @@ class RRTGraph:
         self.obstacles = obs.copy()
         return obs
 
-    def add_node(self, n, x, y):
+    # The next 6 methods contain some node and edge tools
+    def add_node(self, n, x, y): #stores a node in the lists. n = node index number
         self.x.insert(n, x)
         self.y.append(y)
 
-    def remove_node(self, n):
+    def remove_node(self, n): # removes a node from the lists.
         self.x.pop(n)
         self.y.pop(n)
 
-    def add_edge(self, parent, child):
-        self.parent.insert(child, parent)
+    def add_edge(self, parent, child): # adds an edge to the list 
+        self.parent.insert(child, parent) # "child" is used as index, "parent" as element
 
-    def remove_edge(self, n):
+    def remove_edge(self, n): # removes an edge from the list 
         self.parent.pop(n)
 
-    def number_of_nodes(self):
+    def number_of_nodes(self): # returns total number of nodes
         return len(self.x)
 
-    def distance(self, n1, n2):
+    def distance(self, n1, n2): # returns distance between node n1 and node n2
         (x1, y1) = (self.x[n1], self.y[n1])
         (x2, y2) = (self.x[n2], self.y[n2])
         px = (float(x1) - float(x2)) ** 2
         py = (float(y1) - float(y2)) ** 2
         return (px + py) ** (0.5)
 
-    def sample_envir(self):
+    def sample_envir(self): # sample a random point, return its x and y coordinates
         x = int(random.uniform(0, self.mapw))
         y = int(random.uniform(0, self.maph))
         return x, y
@@ -136,8 +147,8 @@ class RRTGraph:
                 nnear = i
         return nnear
 
-    def isFree(self):
-        n = self.number_of_nodes() - 1
+    def isFree(self): # Checks if node is in an obstacle. Returns False when it collides, Free when it's free.
+        n = self.number_of_nodes() - 1 # node ID's start form 0
         (x, y) = (self.x[n], self.y[n])
         obs = self.obstacles.copy()
         while len(obs) > 0:
@@ -147,7 +158,7 @@ class RRTGraph:
                 return False
         return True
 
-    def crossObstacle(self, x1, x2, y1, y2):
+    def crossObstacle(self, x1, x2, y1, y2): # Checks if an adge crosses an obstacle. Returns False when it collides, Free when it's free.
         obs = self.obstacles.copy()
         while (len(obs) > 0):
             rectang = obs.pop(0)
@@ -159,7 +170,7 @@ class RRTGraph:
                     return True
         return False
 
-    def connect(self, n1, n2):
+    def connect(self, n1, n2): # Perfoms collision check for edge between nodes n1 and n2. WWWWWWWWWWWWWWWWWWW
         (x1, y1) = (self.x[n1], self.y[n1])
         (x2, y2) = (self.x[n2], self.y[n2])
         if self.crossObstacle(x1, x2, y1, y2):
