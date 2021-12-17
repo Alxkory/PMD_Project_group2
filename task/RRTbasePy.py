@@ -134,8 +134,14 @@ class RRTGraph:
         return x,y
 
 
-    def nearest(self):
-        pass
+    def nearest(self,n): #finds nearest node
+        dmin=self.distance(0,n)
+        nnear=0 # this will hold the ID of the closest node we found so far
+        for i in range(0,n):
+            if self.distance(i,n)<dmin:
+                dmin=self.distance(i,n)
+                nnear=i
+        return nnear
 
 
     def isFree(self):
@@ -174,8 +180,23 @@ class RRTGraph:
             return True
 
 
-    def step(self):
-        pass
+    def step(self,nnear,nrand,dmax=35):
+        d=self.distance(nnear,nrand)
+        if d>dmax:
+            u=dmax/d
+            (xnear,ynear)=(self.x[nnear],self.y[nnear])
+            (xrand,yrand)=(self.x[nrand],self.y[nrand])
+            (px,py)=(xrand-xnear,yrand-ynear)
+            theta=math.atan2(py,px)
+            (x,y)=(int(xnear+dmax*math.cos(theta)),
+                   int(ynear+dmax*math.sin(theta)))
+            self.remove_node(nrand)
+            if abs(x-self.goal[0])<dmax and abs(y - self.goal[1])<dmax: #check if the goal has been reached
+                self.add_node(nrand,self.goal[0],self.goal[1])
+                self.goalstate=nrand
+                self.goalFlag=True
+            else:
+                self.add_node(nrand,x,y)
 
 
     def path_to_goal(self):
@@ -186,13 +207,24 @@ class RRTGraph:
         pass
 
 
-    def bias(self):
-        pass
+    def bias(self,ngoal):
+        n=self.number_of_nodes()
+        self.add_node(n,ngoal[0],ngoal[1])
+        nnear=self.nearest(n)
+        self.step(nnear,n)
+        self.connect(nnear,n)
+        return self.x,self.y,self.parent
 
 
     def expand(self):
-        pass
-
+        n=self.number_of_nodes()
+        x,y=self.sample_envir()
+        self.add_node(n,x,y)
+        if self.isFree():
+            xnearest=self.nearest(n)
+            self.step(xnearest,n)
+            self.connect(xnearest,n)
+        return self.x,self.y,self.parent
 
     def cost(self):
         pass
