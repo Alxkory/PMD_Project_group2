@@ -181,23 +181,23 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             self.add_edge(n1, n2) # adds the edge to the tree when a connection is possible
             return True
 
-    def step(self, nnear, n, dmax=35): # 
+    def step(self, nnear, n, dmax=35): # when the new sampled node is too far from the tree, this method moves it closer
         d = self.distance(nnear, n) # distance between nearest node and new sampled node
-        if d > dmax: 
+        if d > dmax:
             (xnear, ynear) = (self.x[nnear], self.y[nnear])
             (xn, yn) = (self.x[n], self.y[n])
             (dx, dy) = (xn-xnear, yn-ynear)
             theta = math.atan2(dy, dx)
-            (x, y) = (int(xnear+dmax*math.cos(theta)),
-                      int(ynear+dmax*math.sin(theta)))
-            self.remove_node(n)
-            # check if the goal has been reached????????????????????????
+            (x, y) = (int(xnear+dmax*math.cos(theta)), # new node is created with a distance of
+                      int(ynear+dmax*math.sin(theta))) # dmax to the closest node in the tree
+            self.remove_node(n) # the node that is too far is deleted
+            # check if the goal has been reached:
             if abs(x-self.goal[0]) < dmax and abs(y - self.goal[1]) < dmax:
                 self.add_node(n, self.goal[0], self.goal[1])
                 self.goalstate = n
                 self.goalFlag = True
             else:
-                self.add_node(n, x, y)
+                self.add_node(n, x, y) # otherwise, simply add node to tree
 
     def path_to_goal(self): # checks if the goal has been reached
         if self.goalFlag:
@@ -217,7 +217,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             pathCoords.append((x, y))
         return pathCoords
 
-    def bias(self, ngoal): # Does a step towards the goal every 10th step (can be changed in RRT.py). This helps speed up the algorithm
+    def bias(self, ngoal): # Does a step straight towards the goal. This speeds up the algorithm when it is not used too much: now every 10th step (can be changed in RRT.py).
         n = self.number_of_nodes()
         self.add_node(n, ngoal[0], ngoal[1])
         nnear = self.nearest(n)
@@ -230,8 +230,8 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         x, y = self.sample_envir() # sample a random point
         self.add_node(n, x, y) # add to list
         if self.isFree(): # if node is not in obstacle (else node gets removed inside isFree method)
-            xnearest = self.nearest(n)
-            self.step(xnearest, n) # performs a step
+            xnearest = self.nearest(n) # find nearest node
+            self.step(xnearest, n) # move closer if it's too far
             self.connect(xnearest, n)
         return self.x, self.y, self.parent
 
