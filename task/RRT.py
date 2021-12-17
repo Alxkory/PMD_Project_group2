@@ -2,6 +2,7 @@
 import pygame
 from RRTbasePy import RRTGraph
 from RRTbasePy import RRTMap
+import time
 
 
 def main():
@@ -11,7 +12,6 @@ def main():
     obsdim = 30
     obsnum = 50
     iteration = 0
-    t1 = 0 # timestamp
 
     pygame.init()
     map = RRTMap(start, goal, dimensions, obsdim, obsnum)
@@ -34,7 +34,9 @@ def main():
             pygame.draw.line(
                 map.map, map.Blue, (X[-1], Y[-1]), (X[Parent[-1]], Y[Parent[-1]]), map.edgeThickness)
         if iteration % 5 == 0:
+        # if iteration % 1 == 0:
             pygame.display.update()
+            # time.sleep(0.15)
         iteration += 1
     map.drawPath(graph.getPathCoords())
     pygame.display.update()

@@ -8,6 +8,7 @@ import pygame
 # - positive x pointing right
 # - positive y pointing down
 
+# nodes are created on the go
 
 class RRTMap: # for visualisation. Methods draw the map, obstacles and path
     def __init__(self, start, goal, MapDimensions, obsdim, obsnum):
@@ -64,10 +65,10 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         self.MapDimensions = MapDimensions
         self.maph, self.mapw = self.MapDimensions
         
-        # lists to store nodes (that are added to the tree):
-        self.x = [] # list to store the x coordinate of nodes (of the tree)
-        self.y = [] # list to store the y coordinate of nodes (of the tree)
-        self.parent = [] # list to store the parent-id of nodes of the tree
+        # lists to store nodes that are added to the tree:
+        self.x = [] # list to store the x coordinates
+        self.y = [] # list to store the y coordinates
+        self.parent = [] # list to store the parent-IDs
 
         # initialize the tree
         self.x.append(x)
@@ -129,23 +130,23 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
     def distance(self, n1, n2): # returns distance between node n1 and node n2
         (x1, y1) = (self.x[n1], self.y[n1])
         (x2, y2) = (self.x[n2], self.y[n2])
-        px = (float(x1) - float(x2)) ** 2
+        dx = (float(x1) - float(x2)) ** 2
         py = (float(y1) - float(y2)) ** 2
-        return (px + py) ** (0.5)
+        return (dx + py) ** (0.5)
 
     def sample_envir(self): # sample a random point, return its x and y coordinates
         x = int(random.uniform(0, self.mapw))
         y = int(random.uniform(0, self.maph))
         return x, y
 
-    def nearest(self, n):  # finds nearest node
+    def nearest(self, n): # measures distance from new sampled node to every node in the tree
         dmin = self.distance(0, n)
-        nnear = 0  # this will hold the ID of the closest node we found so far
+        nnear = 0 # this will hold the ID of the closest node we found so far
         for i in range(0, n):
             if self.distance(i, n) < dmin:
                 dmin = self.distance(i, n)
                 nnear = i
-        return nnear
+        return nnear # return the ID of the closest node
 
     def isFree(self): # Checks if node is in an obstacle. Returns False when it collides, Free when it's free.
         n = self.number_of_nodes() - 1 # node ID's start form 0
@@ -154,11 +155,11 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         while len(obs) > 0:
             rectang = obs.pop(0)
             if rectang.collidepoint(x, y):
-                self.remove_node(n)
+                self.remove_node(n) # remove node
                 return False
         return True
 
-    def crossObstacle(self, x1, x2, y1, y2): # Checks if an adge crosses an obstacle. Returns False when it collides, Free when it's free.
+    def crossObstacle(self, x1, x2, y1, y2): # Checks if an edge crosses an obstacle. Returns False when it collides, Free when it's free.
         obs = self.obstacles.copy()
         while (len(obs) > 0):
             rectang = obs.pop(0)
@@ -170,36 +171,35 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                     return True
         return False
 
-    def connect(self, n1, n2): # Perfoms collision check for edge between nodes n1 and n2. WWWWWWWWWWWWWWWWWWW
+    def connect(self, n1, n2):  # Connects nodes n1 and n2
         (x1, y1) = (self.x[n1], self.y[n1])
         (x2, y2) = (self.x[n2], self.y[n2])
-        if self.crossObstacle(x1, x2, y1, y2):
-            self.remove_node(n2)
+        if self.crossObstacle(x1, x2, y1, y2): # Perfom collision check for edge between nodes n1 and n2. 
+            self.remove_node(n2) # Remove the node
             return False
         else:
-            self.add_edge(n1, n2)
+            self.add_edge(n1, n2) # adds the edge to the tree when a connection is possible
             return True
 
-    def step(self, nnear, nrand, dmax=35):
-        d = self.distance(nnear, nrand)
-        if d > dmax:
-            u = dmax/d
+    def step(self, nnear, n, dmax=35): # 
+        d = self.distance(nnear, n) # distance between nearest node and new sampled node
+        if d > dmax: 
             (xnear, ynear) = (self.x[nnear], self.y[nnear])
-            (xrand, yrand) = (self.x[nrand], self.y[nrand])
-            (px, py) = (xrand-xnear, yrand-ynear)
-            theta = math.atan2(py, px)
+            (xn, yn) = (self.x[n], self.y[n])
+            (dx, dy) = (xn-xnear, yn-ynear)
+            theta = math.atan2(dy, dx)
             (x, y) = (int(xnear+dmax*math.cos(theta)),
                       int(ynear+dmax*math.sin(theta)))
-            self.remove_node(nrand)
-            # check if the goal has been reached
+            self.remove_node(n)
+            # check if the goal has been reached????????????????????????
             if abs(x-self.goal[0]) < dmax and abs(y - self.goal[1]) < dmax:
-                self.add_node(nrand, self.goal[0], self.goal[1])
-                self.goalstate = nrand
+                self.add_node(n, self.goal[0], self.goal[1])
+                self.goalstate = n
                 self.goalFlag = True
             else:
-                self.add_node(nrand, x, y)
+                self.add_node(n, x, y)
 
-    def path_to_goal(self):
+    def path_to_goal(self): # checks if the goal has been reached
         if self.goalFlag:
             self.path = []
             self.path.append(self.goalstate)
@@ -210,14 +210,14 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             self.path.append(0)
         return self.goalFlag
 
-    def getPathCoords(self):
+    def getPathCoords(self): # when path is found, retrieve coordinates of its nodes to visualize it
         pathCoords = []
         for node in self.path:
             x, y = (self.x[node], self.y[node])
             pathCoords.append((x, y))
         return pathCoords
 
-    def bias(self, ngoal):
+    def bias(self, ngoal): # Does a step towards the goal every 10th step (can be changed in RRT.py). This helps speed up the algorithm
         n = self.number_of_nodes()
         self.add_node(n, ngoal[0], ngoal[1])
         nnear = self.nearest(n)
@@ -225,13 +225,13 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         self.connect(nnear, n)
         return self.x, self.y, self.parent
 
-    def expand(self):
+    def expand(self): # does a random expansion
         n = self.number_of_nodes()
-        x, y = self.sample_envir()
-        self.add_node(n, x, y)
-        if self.isFree():
+        x, y = self.sample_envir() # sample a random point
+        self.add_node(n, x, y) # add to list
+        if self.isFree(): # if node is not in obstacle (else node gets removed inside isFree method)
             xnearest = self.nearest(n)
-            self.step(xnearest, n)
+            self.step(xnearest, n) # performs a step
             self.connect(xnearest, n)
         return self.x, self.y, self.parent
 
