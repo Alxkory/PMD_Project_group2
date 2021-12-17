@@ -10,6 +10,7 @@ def main():
     obsdim = 30
     obsnum = 50
     iteration = 0
+    t1 = 0 # timestamp
 
     pygame.init()
     map = RRTMap(start, goal, dimensions, obsdim, obsnum)
@@ -18,23 +19,35 @@ def main():
     obstacles = graph.makeobs()
     map.drawMap(obstacles)
 
-    while (iteration<500):
+    while (not graph.path_to_goal()):
         if iteration % 10 == 0:
-            X, Y, Parent =graph.bias(goal)
-            pygame.draw.circle(map.map, map.grey, (X[-1],Y[-1]), map.nodeRad+2, 0)
-            pygame.draw.line(map.map, map.Blue, (X[-1], Y[-1]), (X[Parent[-1]], Y[Parent[-1]]),map.edgeThickness)
+            X, Y, Parent = graph.bias(goal)
+            pygame.draw.circle(map.map, map.grey,
+                               (X[-1], Y[-1]), map.nodeRad+2, 0)
+            pygame.draw.line(
+                map.map, map.Blue, (X[-1], Y[-1]), (X[Parent[-1]], Y[Parent[-1]]), map.edgeThickness)
         else:
-            X, Y, Parent =graph.expand()
-            pygame.draw.circle(map.map, map.grey, (X[-1],Y[-1]), map.nodeRad+2, 0)
-            pygame.draw.line(map.map, map.Blue, (X[-1], Y[-1]), (X[Parent[-1]], Y[Parent[-1]]),map.edgeThickness)
+            X, Y, Parent = graph.expand()
+            pygame.draw.circle(map.map, map.grey,
+                               (X[-1], Y[-1]), map.nodeRad+2, 0)
+            pygame.draw.line(
+                map.map, map.Blue, (X[-1], Y[-1]), (X[Parent[-1]], Y[Parent[-1]]), map.edgeThickness)
         if iteration % 5 == 0:
             pygame.display.update()
         iteration += 1
-    
+    map.drawPath(graph.getPathCoords())
     pygame.display.update()
     pygame.event.clear()
     pygame.event.wait(0)
 
 
 if __name__ == '__main__':
-    main()
+    # sometimes the RRT algorithm raises an error. 
+    # This exception handling makes the algoritm try again (until the error doesn't uccur)
+    result=False
+    while not result:
+        try:
+            main()
+            result=True
+        except:
+            result=False
