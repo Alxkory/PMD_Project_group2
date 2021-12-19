@@ -5,7 +5,11 @@ def euler(func,y,dt):
     return y_new
 
 def RK4(func,y,dt):
+    #print(f"inside rk4, func:{func}")
+    #print(f"inside rk4, y:{y}")
+    #print(f"result of func in rk4: {func(y)}")
     k1 = dt * func(y)
+    #print(f"rk4, k1:{k1}")
     k2 = dt * func(y + 0.5 * k1)
     k3 = dt * func(y + 0.5 * k2)
     k4 = dt * func(y + k3)
@@ -33,7 +37,7 @@ class KinematicBicycleModel():
 
         s_new = RK4(vehiclekinematics,s,dt)
 
-        self.x,self.y,self.yaw,self.v = s_new
+        self.x,self.y,self.yaw,self.v,_,_ = s_new
         self.yaw = normalizeAngle(self.yaw)
 
     def vehiclekinematics(self,s):
@@ -45,7 +49,7 @@ class KinematicBicycleModel():
         dy = v*np.sin(psi+beta)
         dpsi = (v/l_r)*sin(beta)
         dv = throttle
-        w = dx, dy, dpsi,dv
+        w = np.array([dx, dy, dpsi,dv,throttle,steering])
         return w
 
 def normalizeAngle(angle):
