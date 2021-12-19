@@ -1,3 +1,2 @@
-numpy
-pygame
-matplotlib
+pygame>=2.1.0
+numpy>=1.21.4
