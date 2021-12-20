@@ -30,27 +30,34 @@ class KinematicBicycleModel():
         self.yaw = yaw
         self.v = v
 
-    def update(self, throttle, delta):
-        delta = np.clip(delta,-max_steer,max_steer)
-
-        s = (self.x,self.y,self.yaw,self.v,throttle,delta)
-
-        s_new = RK4(vehiclekinematics,s,dt)
-
-        self.x,self.y,self.yaw,self.v,_,_ = s_new
-        self.yaw = normalizeAngle(self.yaw)
-
     def vehiclekinematics(self,s):
         x,y,psi,v,throttle,steering = s
-
 
         beta = np.arctan((l_r/(l_f+l_r))*np.tan(steering))
         dx = v*np.cos(psi+beta)
         dy = v*np.sin(psi+beta)
-        dpsi = (v/l_r)*sin(beta)
+        dpsi = (v/l_r)*np.sin(beta)
         dv = throttle
         w = np.array([dx, dy, dpsi,dv,throttle,steering])
         return w
+
+    def update(self, throttle, delta,method="RK4"):
+        # clips input
+        max_steer = 0.25*np.pi
+        delta = np.clip(delta,-max_steer,max_steer)
+        #sets input array
+        s = (self.x,self.y,self.yaw,self.v,throttle,delta)
+        # runs dynamics and interpolates for new state
+        if method == "RK4":
+            s_new = RK4(self.vehiclekinematics,s,dt)
+        if method == "euler":
+            s_new = euler(self.vehiclekinematics,s,dt)
+        # retreives new state
+        self.x,self.y,self.yaw,self.v,_,_ = s_new
+        # ensures yaw angle remains bound
+        self.yaw = normalizeAngle(self.yaw)
+
+
 
 def normalizeAngle(angle):
     while angle > np.pi:
