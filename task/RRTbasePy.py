@@ -165,7 +165,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         obs = self.obstacles.copy()
         while (len(obs) > 0):
             rectang = obs.pop(0)
-            for i in range(0, 101):
+            for i in range(0, 101): # dit is een rechte lijn | STEERING FUNCTION INBOUWEN??????????????????
                 u = i / 100
                 x = x1 * u + x2 * (1 - u)
                 y = y1 * u + y2 * (1 - u)
