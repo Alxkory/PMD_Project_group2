@@ -48,7 +48,7 @@ class RRTMap: # for visualisation. Methods draw the map, obstacles and path
                            self.goal, self.nodeRad + 20, 1)
         self.drawObs(obstacles)
 
-    def drawPath(self, path):
+    def drawPath(self, path): # draws the path that has been found
         for node in path:
             pygame.draw.circle(self.map, self.Red, node, self.nodeRad+3, 0)
 
@@ -64,7 +64,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         (x, y) = start
         self.start = start
         self.goal = goal
-        self.goalFlag = False
+        self.goalFlag = False # Set to True when goal is reached
         self.MapDimensions = MapDimensions
         self.maph, self.mapw = self.MapDimensions
         
@@ -173,19 +173,19 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                     return True
         return False
 
-    def connect(self, n1, n2):  # Connects nodes n1 and n2
+    def connect(self, n1, n2):  # Connects 2 nodes and performs collision check
         (x1, y1) = (self.x[n1], self.y[n1])
         (x2, y2) = (self.x[n2], self.y[n2])
-        if self.crossObstacle(x1, x2, y1, y2): # Perfom collision check for edge between nodes n1 and n2. 
-            self.remove_node(n2) # Remove the node
+        if self.crossObstacle(x1, x2, y1, y2):
+            self.remove_node(n2)
             return False
         else:
             self.add_edge(n1, n2) # adds the edge to the tree when a connection is possible
             return True
 
-    def step(self, nnear, n, dmax=35): # sample random node near tree (max distance of dmax from any node in the tree) | DEFAULT 35
-        d = self.distance(nnear, n) # distance between nearest node and new sampled node
-        if d > dmax: # when the new sampled node is too far from the tree, this method moves it closer
+    def step(self, nnear, n, dmax=35): # move node closer to tree when it's too far and check if goal has been reached (dmax = max distance from any node in the tree, default 35)
+        d = self.distance(nnear, n)
+        if d > dmax:
             (xnear, ynear) = (self.x[nnear], self.y[nnear])
             (xn, yn) = (self.x[n], self.y[n])
             (dx, dy) = (xn-xnear, yn-ynear)
@@ -193,26 +193,25 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             (x, y) = (int(xnear+dmax*math.cos(theta)), # new node is created with a distance of
                       int(ynear+dmax*math.sin(theta))) # dmax to the closest node in the tree
             self.remove_node(n) # the node that is too far is deleted
-            # check if the goal has been reached:
-            if abs(x-self.goal[0]) < dmax and abs(y - self.goal[1]) < dmax:
+            if abs(x-self.goal[0]) < dmax and abs(y - self.goal[1]) < dmax: # check if the goal has been reached
                 self.add_node(n, self.goal[0], self.goal[1])
                 self.goalstate = n
                 self.goalFlag = True
             else:
                 self.add_node(n, x, y) # otherwise, simply add node to tree
 
-    def path_to_goal(self): # checks if the goal has been reached
+    def path_to_goal(self): # If goal has not been reached, return False. If goal has been reached: creates a list containing the path (from goal to start)
         if self.goalFlag:
             self.path = []
-            self.path.append(self.goalstate)
+            self.path.append(self.goalstate) # starting at the goal
             newpos = self.parent[self.goalstate]
-            while (newpos != 0):
+            while (newpos != 0): # adding the parent, the parent of that parent, etc.
                 self.path.append(newpos)
                 newpos = self.parent[newpos]
             self.path.append(0)
         return self.goalFlag
 
-    def getPathCoords(self): # when path is found, retrieve coordinates of its nodes to visualize it
+    def getPathCoords(self): # Retrieve coordinates of the nodes in the path (to visualize it)
         pathCoords = []
         for node in self.path:
             x, y = (self.x[node], self.y[node])

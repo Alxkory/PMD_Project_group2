@@ -20,8 +20,8 @@ def main():
     obstacles = graph.makeobs()
     map.drawMap(obstacles)
 
-    while (not graph.path_to_goal()):
-        if iteration % 10 == 0:
+    while (not graph.path_to_goal()): # iterate until goal is found
+        if iteration % 10 == 0: # 10% of all steps i straight towards the goal
             X, Y, Parent = graph.bias(goal)
             pygame.draw.circle(map.map, map.grey,
                                (X[-1], Y[-1]), map.nodeRad+2, 0)
