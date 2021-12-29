@@ -9,8 +9,8 @@ def main():
     dimensions = (600, 1000)
     start = (50, 50)
     goal = (510, 510)
-    obsdim = 30
-    obsnum = 50
+    obsdim = 50
+    obsnum = 20
     iteration = 0
 
     pygame.init()
@@ -38,10 +38,12 @@ def main():
             pygame.display.update()
             # time.sleep(0.15)
         iteration += 1
+
     map.drawPath(graph.getPathCoords())
     pygame.display.update()
     pygame.event.clear()
-    pygame.event.wait(0)
+    pygame.event.wait()
+    # time.sleep(5)
 
 
 if __name__ == '__main__':

@@ -2,6 +2,9 @@
 import random
 import math
 import pygame
+import random
+
+random.seed()
 
 # Pygame coordinate system:
 # - origin in top left
@@ -89,7 +92,6 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
     def makeRandomRect(self): # random x, y coordinates (upper left corner) | AANPASSEN
         uppercornerx = int(random.uniform(0, self.mapw - self.obsDim))
         uppercornery = int(random.uniform(0, self.maph - self.obsDim))
-
         return (uppercornerx, uppercornery)
 
     def makeobs(self): # creates the obstacles | AANPASSEN
@@ -181,9 +183,9 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             self.add_edge(n1, n2) # adds the edge to the tree when a connection is possible
             return True
 
-    def step(self, nnear, n, dmax=35): # when the new sampled node is too far from the tree, this method moves it closer
+    def step(self, nnear, n, dmax=35): # sample random node near tree (max distance of dmax from any node in the tree) | DEFAULT 35
         d = self.distance(nnear, n) # distance between nearest node and new sampled node
-        if d > dmax:
+        if d > dmax: # when the new sampled node is too far from the tree, this method moves it closer
             (xnear, ynear) = (self.x[nnear], self.y[nnear])
             (xn, yn) = (self.x[n], self.y[n])
             (dx, dy) = (xn-xnear, yn-ynear)
