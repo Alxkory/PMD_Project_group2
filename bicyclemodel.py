@@ -38,7 +38,7 @@ def stanley():
 L = 3.0 #m
 l_r = L/2.0
 l_f = L-l_r
-dt = 0.01
+dt = 0.1
 track = 2
 # class definition
 class KinematicBicycleModel():
@@ -76,7 +76,7 @@ class KinematicBicycleModel():
         # ensures yaw angle remains bound
         self.yaw = normalizeAngle(self.yaw)
 
-    def draw_car(self,plot=None,delta=0.0):
+    def draw_car(self,plot=None,delta=0.0,drawvel=True):
         #draw body #xy position needs to be adjusted
         draw_rectangle(plot, L, 2, self.x, self.y, self.yaw,'red')
         #draw back wheels
@@ -107,6 +107,9 @@ class KinematicBicycleModel():
         draw_rectangle(plot, wheel_diam, wheel_width, f_wheel_l[0][0], f_wheel_l[1][0], self.yaw + delta,'orange')
 
         draw_rectangle(plot, wheel_diam, wheel_width, f_wheel_r[0][0], f_wheel_r[1][0], self.yaw + delta,'orange')
+
+        if drawvel:
+            plot.arrow(self.x,self.y,0.5*self.v*np.cos(self.yaw),0.5*self.v*np.sin(self.yaw),length_includes_head=True,hatch='|',ls='--')
 
 
 def draw_rectangle(plot,width,height,Xcenter,Ycenter,Yaw,color):

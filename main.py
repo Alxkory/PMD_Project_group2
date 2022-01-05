@@ -11,11 +11,11 @@ def main():
     # Use a breakpoint in the code line below to debug your script.
 
 
-    car = KinematicBicycleModel(x=0.0,y=0.0,yaw=0.2)
+    car = KinematicBicycleModel(x=0.0,y=0.0,yaw=0.2)#loads the car model with starting coordinates
     dt = bicyclemodel.dt
 
     time = 0.0
-    T = 300
+    T = 100
 
     output_euler = []
 
@@ -33,21 +33,23 @@ def main():
         car.update(throttle,steering,method="RK4")
         time += dt
         if True:
-            plt.cla()
-            plt.gcf().canvas.mpl_connect(
+
+            plt.cla() #clears screen
+            plt.gcf().canvas.mpl_connect( # event handler to exit when escape key is pressed
                     'key_release_event',
                     lambda event: [exit(0) if event.key == 'escape' else None])
             max_steer = car.max_steer
-            steering = np.clip(steering,-max_steer,max_steer)
+            steering = np.clip(steering,-max_steer,max_steer) #steering for drawing and title data, to match up with internal class delta
             car.draw_car(plot=plt,delta=steering)
             plt.axis("equal")
             plt.grid(True)
 
-            plt.xlim([car.x-5,car.x+5])
+            plt.xlim([car.x-5,car.x+5]) #more space for car
             plt.ylim([car.y-5,car.y+5])
 
             plt.title(f"x:{np.round(car.x,decimals=1)},y:{np.round(car.y,decimals=1)},yaw:{np.round(car.yaw,decimals=1)},v:{np.round(car.v,decimals=1)},delta:{np.round(steering,decimals=2)},time:{np.round(time,decimals=2)}")
-            plt.pause(0.001)
+            plt.pause(0.000000000001)
+
 
     if True:
         plt.cla()
@@ -55,7 +57,11 @@ def main():
         plt.ylabel("y[m]")
         plt.axis("equal")
         plt.grid(True)
-        plt.grid(True)
+        max_steer = car.max_steer
+        steering = np.clip(steering, -max_steer, max_steer)  # steering for drawing and title data, to match up with internal class delta
+        car.draw_car(plot=plt, delta=steering)
+
+        plt.title(f"x:{np.round(car.x, decimals=1)},y:{np.round(car.y, decimals=1)},yaw:{np.round(car.yaw, decimals=1)},v:{np.round(car.v, decimals=1)},delta:{np.round(steering, decimals=2)},time:{np.round(time, decimals=2)}")
         plt.show()
   # Press Ctrl+F8 to toggle the breakpoint.
 
