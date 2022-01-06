@@ -3,6 +3,8 @@ import random
 import math
 import pygame
 import random
+import numpy as np
+from scipy import interpolate
 
 random.seed()
 
@@ -86,6 +88,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         # path
         self.goalstate = None
         self.path = []
+
     
     # The next 2 methods generate random obstacles:
     
@@ -199,6 +202,8 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                 self.goalFlag = True
             else:
                 self.add_node(n, x, y) # otherwise, simply add node to tree
+                
+                
 
     def path_to_goal(self): # If goal has not been reached, return False. If goal has been reached: creates a list containing the path (from goal to start)
         if self.goalFlag:
@@ -217,6 +222,30 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             x, y = (self.x[node], self.y[node])
             pathCoords.append((x, y))
         return pathCoords
+
+    def B_spline(self):
+        x=[]
+        y=[]
+        
+        for point in self.path:
+            x.append(self.x[point])
+            y.append(self.y[point])
+        
+        tck, *rest = interpolate.splprep([x, y])
+        u = np.linspace(0, 1, num=100)
+        bspline=interpolate.splev(u, tck)
+        # TODO: pas num aan
+        
+        return bspline
+
+    def getSmoothPathCoords(self): # Retrieve coordinates of the nodes in the path (to visualize it)
+        bspline = self.B_spline()
+        SmoothPathCoords = []
+        for i in range(len(bspline[0])):
+            x, y = (bspline[0][i],bspline[0][i])
+            SmoothPathCoords.append((x, y))
+        return SmoothPathCoords
+
 
     def bias(self, ngoal): # Does a step straight towards the goal. This speeds up the algorithm when it is not used too much: now every 10th step (can be changed in RRT.py).
         n = self.number_of_nodes()
@@ -238,3 +267,5 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
 
     def cost(self):
         pass
+
+
