@@ -52,7 +52,7 @@ class RRTMap: # for visualisation. Methods draw the map, obstacles and path
 
     def drawPath(self, path): # draws the path that has been found
         for node in path:
-            pygame.draw.circle(self.map, self.Red, node, self.nodeRad+3, 0)
+            pygame.draw.circle(self.map, self.Red, node, self.nodeRad, 0) # was self.nodeRad+3
 
     def drawObs(self, obstacles): # draws obstacles
         obstaclesList = obstacles.copy()
@@ -232,7 +232,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             y.append(self.y[point])
         
         tck, *rest = interpolate.splprep([x, y])
-        u = np.linspace(0, 1, num=100)
+        u = np.linspace(0, 1, num=500)
         bspline=interpolate.splev(u, tck)
         # TODO: pas num aan
         
@@ -242,7 +242,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         bspline = self.B_spline()
         SmoothPathCoords = []
         for i in range(len(bspline[0])):
-            x, y = (bspline[0][i],bspline[0][i])
+            x, y = (bspline[0][i],bspline[1][i])
             SmoothPathCoords.append((x, y))
         return SmoothPathCoords
 

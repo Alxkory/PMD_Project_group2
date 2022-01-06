@@ -40,14 +40,23 @@ def main():
             pygame.display.update()
             # time.sleep(0.15)
         iteration += 1
+        
+# uit Bspline test file:
+    # smooth = graph.B_spline()
+    # X_smooth,Y_smooth=smooth
+    # # map.fill((255,255,255))
+    # for x, y in zip(X_smooth,Y_smooth):
+    #     pygame.draw.circle(map, (255,0,0), (x,y),2,0)
 
-
-    # path = graph.getPathCoords()
+# tests:
+    path = graph.getPathCoords()
     # bspline = graph.B_spline()
     # print(range(len(bspline[0])))
     # x3 = bspline[0][3]
     # y3 = bspline[1,3]
-    # smooth = graph.getSmoothPathCoords()
+    smooth = graph.getSmoothPathCoords()
+    
+    
     # map.drawPath(graph.getPathCoords())
     map.drawPath(graph.getSmoothPathCoords())
     pygame.display.update()
