@@ -6,7 +6,8 @@ import random
 import numpy as np
 from scipy import interpolate
 
-# TODO: collision-check na B-spline path smoothing
+# TODO: zoek uit hoe we een maximum bocht kunnen implementeren
+# TODO: opnieuw runnen bij instabiele B-spline
 
 random.seed()
 
@@ -237,7 +238,6 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         tck, *rest = interpolate.splprep([x, y])
         u = np.linspace(0, 1, num=(len(self.path)*10))
         bspline=interpolate.splev(u, tck)
-        # TODO: pas num aan
         
         return bspline #list [[x],[y]]
 
