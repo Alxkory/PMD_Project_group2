@@ -6,6 +6,8 @@ import random
 import numpy as np
 from scipy import interpolate
 
+# TODO: collision-check na B-spline path smoothing
+
 random.seed()
 
 # Pygame coordinate system:
@@ -88,6 +90,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         # path
         self.goalstate = None
         self.path = []
+        self.smoothPath = []
 
     
     # The next 2 methods generate random obstacles:
@@ -114,7 +117,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         self.obstacles = obs.copy()
         return obs
 
-    # The next 6 methods contain some node and edge tools
+    # The next 11 methods contain some node and edge operations
     def add_node(self, n, x, y): #stores a node in the lists. n = node index number
         self.x.insert(n, x)
         self.y.append(y)
@@ -164,11 +167,11 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                 return False
         return True
 
-    def crossObstacle(self, x1, x2, y1, y2): # Checks if an edge crosses an obstacle. Returns False when it collides, Free when it's free.
+    def crossObstacle(self, x1, x2, y1, y2): # Checks if an edge crosses an obstacle. Returns True when it collides, False when it's free.
         obs = self.obstacles.copy()
         while (len(obs) > 0):
             rectang = obs.pop(0)
-            for i in range(0, 101): # dit is een rechte lijn | STEERING FUNCTION INBOUWEN??????????????????
+            for i in range(0, 101):
                 u = i / 100
                 x = x1 * u + x2 * (1 - u)
                 y = y1 * u + y2 * (1 - u)
@@ -223,7 +226,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             pathCoords.append((x, y))
         return pathCoords
 
-    def B_spline(self):
+    def B_spline(self): # smoothen out path to respect the steering function
         x=[]
         y=[]
         
@@ -232,19 +235,29 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             y.append(self.y[point])
         
         tck, *rest = interpolate.splprep([x, y])
-        u = np.linspace(0, 1, num=500)
+        u = np.linspace(0, 1, num=(len(self.path)*10))
         bspline=interpolate.splev(u, tck)
         # TODO: pas num aan
         
-        return bspline
+        return bspline #list [[x],[y]]
 
-    def getSmoothPathCoords(self): # Retrieve coordinates of the nodes in the path (to visualize it)
+    def getSmoothPathCoords(self): # Retrieve coordinates of the smooth path (to visualize it)
         bspline = self.B_spline()
         SmoothPathCoords = []
-        for i in range(len(bspline[0])):
+        for i in reversed(range(len(bspline[0]))):
             x, y = (bspline[0][i],bspline[1][i])
-            SmoothPathCoords.append((x, y))
-        return SmoothPathCoords
+            self.smoothPath.append((x, y))
+        
+        # collision check
+        obs = self.obstacles.copy()
+        while (len(obs) > 0):
+            rectang = obs.pop(0)
+            for i in range(len(self.smoothPath)):
+                if rectang.collidepoint(self.smoothPath[i][0], self.smoothPath[i][1]):
+                    print("Collision! Finding alternative.")
+                    error #This raises an error. Exception handling in RRT.py will make the script run again
+
+        return self.smoothPath # list [[x,y],[x,y],...] (500)
 
 
     def bias(self, ngoal): # Does a step straight towards the goal. This speeds up the algorithm when it is not used too much: now every 10th step (can be changed in RRT.py).

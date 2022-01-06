@@ -49,12 +49,13 @@ def main():
     #     pygame.draw.circle(map, (255,0,0), (x,y),2,0)
 
 # tests:
-    path = graph.getPathCoords()
+    # path = graph.getPathCoords()
     # bspline = graph.B_spline()
     # print(range(len(bspline[0])))
     # x3 = bspline[0][3]
     # y3 = bspline[1,3]
-    smooth = graph.getSmoothPathCoords()
+    # smooth = graph.getSmoothPathCoords()
+    # print(graph.x)
     
     
     # map.drawPath(graph.getPathCoords())
@@ -75,7 +76,7 @@ def main():
 
 
 if __name__ == '__main__':
-    # sometimes the RRT algorithm raises an error. 
+    # Sometimes the RRT algorithm raises an error. 
     # This exception handling makes the algoritm try again (until the error doesn't uccur)
     result=False
     while not result:
