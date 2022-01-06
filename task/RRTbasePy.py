@@ -6,8 +6,9 @@ import random
 import numpy as np
 from scipy import interpolate
 
-# TODO: zoek uit hoe we een maximum bocht kunnen implementeren
 # TODO: opnieuw runnen bij instabiele B-spline
+# Respecting specific a maximum curvature is not possible. Smoothness parameter tuned by trial and error. https://stackoverflow.com/questions/70593382/interpolation-with-bounded-curvature
+
 
 random.seed()
 
@@ -235,7 +236,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             x.append(self.x[point])
             y.append(self.y[point])
         
-        tck, *rest = interpolate.splprep([x, y])
+        tck, *rest = interpolate.splprep([x, y],s=8)
         u = np.linspace(0, 1, num=(len(self.path)*10))
         bspline=interpolate.splev(u, tck)
         

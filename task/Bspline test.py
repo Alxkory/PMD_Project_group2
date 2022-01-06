@@ -11,7 +11,7 @@ def B_spline(waypoints):
         y.append(point[1])
     
     tck, *rest = interpolate.splprep([x, y])
-    u = np.linspace(0, 1, num=50)
+    u = np.linspace(0, 1, num=500)
     bspline=interpolate.splev(u, tck)
     
     return bspline
