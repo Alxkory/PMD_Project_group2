@@ -1,4 +1,5 @@
 import numpy as np
+import pygame
 
 def euler(func,y,dt):
     y_new = y + dt*func(y)
@@ -39,7 +40,7 @@ L = 3.0 #m
 l_r = L/2.0
 l_f = L-l_r
 dt = 0.1
-track = 2
+track = 2 #m
 # class definition
 class KinematicBicycleModel():
     def __init__(self, x=0.0, y=0.0, yaw=0.0, v=0.0,max_steer=0.25*np.pi):
@@ -111,26 +112,83 @@ class KinematicBicycleModel():
         if drawvel:
             plot.arrow(self.x,self.y,0.5*self.v*np.cos(self.yaw),0.5*self.v*np.sin(self.yaw),length_includes_head=True,hatch='|',ls='--')
 
+    def draw_car_pygame(self,surface=None,delta=0.0):
+        color_red = pygame.Color('red')
+        color_black = pygame.Color('black')
+        color_green = pygame.Color('green')
+        color_orange = pygame.Color('orange')
+
+        scaling_factor = 10
+
+        scaled_x = self.x * scaling_factor
+        scaled_y = self.y * scaling_factor
+
+        #draw back wheels
+        wheel_diam=0.8 #m
+        wheel_width=0.3 #m
+
+        scaled_wheel_diam = wheel_diam * scaling_factor
+        scaled_wheel_width = wheel_width * scaling_factor
+
+        scaled_L = L * scaling_factor
+        scaled_track = track * scaling_factor
+
+        scaled_l_r = l_f * scaling_factor
+        scaled_l_f = l_f * scaling_factor
+
+        #draw body #xy position needs to be adjusted
+        draw_rectangle_pygame(surface, scaled_L, scaled_track, scaled_x, scaled_y, self.yaw, color_red)# draw rectangular polygon
+        ...#draw coordinate of car as point back
+        b_wheel_x_r = (-scaled_l_r)
+        b_wheel_y_r = (-scaled_track/2)
+        b_wheel_r = (getRotation(self.yaw) @ np.array([[b_wheel_x_r],[b_wheel_y_r]])) + np.array([[scaled_x],[scaled_y]])
+
+        b_wheel_x_l = (-scaled_l_r)
+        b_wheel_y_l = (scaled_track/2)
+        b_wheel_l = (getRotation(self.yaw) @ np.array([[b_wheel_x_l],[b_wheel_y_l]])) + np.array([[scaled_x],[scaled_y]])
+
+        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_r[0][0], b_wheel_r[1][0], self.yaw,color_green)
+
+        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_l[0][0], b_wheel_l[1][0], self.yaw,color_green)
+        #draw front wheels
+
+        f_wheel_x_r = (scaled_l_f)
+        f_wheel_y_r = (-scaled_track/2)
+        f_wheel_r = (getRotation(self.yaw) @ np.array([[f_wheel_x_r],[f_wheel_y_r]])) + np.array([[scaled_x],[scaled_y]])
+
+        f_wheel_x_l = (scaled_l_f)
+        f_wheel_y_l = (scaled_track/2)
+        f_wheel_l = (getRotation(self.yaw) @ np.array([[f_wheel_x_l],[f_wheel_y_l]])) + np.array([[scaled_x],[scaled_y]])
+
+        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_l[0][0], f_wheel_l[1][0], self.yaw + delta,color_orange)
+
+        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_r[0][0], f_wheel_r[1][0], self.yaw + delta,color_orange)
+        center_radius = scaling_factor * 0.3
+        pygame.draw.circle(surface,color_black,(scaled_x,scaled_y),center_radius)
 
 def draw_rectangle(plot,width,height,Xcenter,Ycenter,Yaw,color):
     xycorners = np.array([[width/2,-width/2,-width/2,width/2,width/2],     #x
                          [height/2,height/2,-height/2,-height/2,height/2]])#y
 
-    #plot.plot(xycorners[0],xycorners[1],color=color)                                 
     xycorners = getRotation(Yaw) @ xycorners
-    #plot.plot(rotatedcorners[0],rotatedcorners[1],color=color)
-    #print("xcorners:")
-    #print(xycorners.shape)
-    #print("addition array:")
-    #print(Xcenter)
     centerarray = np.array([[Xcenter,Xcenter,Xcenter,Xcenter,Xcenter],
                              [Ycenter,Ycenter,Ycenter,Ycenter,Ycenter]])
-    #print(centerarray.shape)
-    #print(centerarray)
     xycorners = xycorners + centerarray
 
-    
     plot.plot(xycorners[0],xycorners[1],color=color)
+    return None
+
+def draw_rectangle_pygame(surface,width,height,Xcenter,Ycenter,Yaw,color):
+    xycorners = np.array([[width/2,-width/2,-width/2,width/2,width/2],     #x
+                         [height/2,height/2,-height/2,-height/2,height/2]])#y
+
+    xycorners = getRotation(Yaw) @ xycorners
+    centerarray = np.array([[Xcenter,Xcenter,Xcenter,Xcenter,Xcenter],
+                             [Ycenter,Ycenter,Ycenter,Ycenter,Ycenter]])
+    xycorners = xycorners + centerarray
+
+    points = (xycorners.T).tolist()
+    pygame.draw.polygon(surface,color,points)
     return None
 
 def normalizeAngle(angle):
