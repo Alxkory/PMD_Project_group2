@@ -3,6 +3,8 @@ import pygame
 from RRTbasePy import RRTGraph
 from RRTbasePy import RRTMap
 import time
+# from sys import exit
+
 
 
 def main():
@@ -38,16 +40,43 @@ def main():
             pygame.display.update()
             # time.sleep(0.15)
         iteration += 1
+        
+# uit Bspline test file:
+    # smooth = graph.B_spline()
+    # X_smooth,Y_smooth=smooth
+    # # map.fill((255,255,255))
+    # for x, y in zip(X_smooth,Y_smooth):
+    #     pygame.draw.circle(map, (255,0,0), (x,y),2,0)
 
-    map.drawPath(graph.getPathCoords())
+# tests:
+    # path = graph.getPathCoords()
+    # bspline = graph.B_spline()
+    # print(range(len(bspline[0])))
+    # x3 = bspline[0][3]
+    # y3 = bspline[1,3]
+    # smooth = graph.getSmoothPathCoords()
+    # print(graph.x)
+    
+    
+    # map.drawPath(graph.getPathCoords())
+    map.drawPath(graph.getSmoothPathCoords())
     pygame.display.update()
     pygame.event.clear()
-    pygame.event.wait()
+    pygame.event.wait(0)
     # time.sleep(5)
+    # pygame.display.quit()
+    # pygame.quit()
+    # exit()
+
+    while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
 
 if __name__ == '__main__':
-    # sometimes the RRT algorithm raises an error. 
+    # Sometimes the RRT algorithm raises an error. 
     # This exception handling makes the algoritm try again (until the error doesn't uccur)
     result=False
     while not result:
