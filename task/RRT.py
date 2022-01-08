@@ -3,12 +3,14 @@ import pygame
 from RRTbasePy import RRTGraph
 from RRTbasePy import RRTMap
 import time
+# from sys import exit
+
 
 
 def main():
     dimensions = (600, 1000)
-    start = (50, 50)
-    goal = (510, 510)
+    start = (0,300)
+    goal = (1000, 200)
     obsdim = 50
     obsnum = 20
     iteration = 0
@@ -38,16 +40,33 @@ def main():
             pygame.display.update()
             # time.sleep(0.15)
         iteration += 1
-
-    map.drawPath(graph.getPathCoords())
+        
+    
+    
+    # Extract path
+    SmoothPath = graph.getSmoothPathCoords()
+    
+    map.drawPath(SmoothPath)
     pygame.display.update()
     pygame.event.clear()
-    pygame.event.wait()
+    pygame.event.wait(0)
     # time.sleep(5)
+    # pygame.display.quit()
+    # pygame.quit()
+    # exit()
+    
+
+    
+
+    while True:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    pygame.quit()
+                    exit()
 
 
 if __name__ == '__main__':
-    # sometimes the RRT algorithm raises an error. 
+    # Sometimes the RRT algorithm raises an error. 
     # This exception handling makes the algoritm try again (until the error doesn't uccur)
     result=False
     while not result:

@@ -3,6 +3,12 @@ import random
 import math
 import pygame
 import random
+import numpy as np
+from scipy import interpolate
+
+# TODO: opnieuw runnen bij instabiele B-spline
+# Respecting specific a maximum curvature is not possible. Smoothness parameter tuned by trial and error. https://stackoverflow.com/questions/70593382/interpolation-with-bounded-curvature
+
 
 random.seed()
 
@@ -50,7 +56,7 @@ class RRTMap: # for visualisation. Methods draw the map, obstacles and path
 
     def drawPath(self, path): # draws the path that has been found
         for node in path:
-            pygame.draw.circle(self.map, self.Red, node, self.nodeRad+3, 0)
+            pygame.draw.circle(self.map, self.Red, node, self.nodeRad, 0) # was self.nodeRad+3
 
     def drawObs(self, obstacles): # draws obstacles
         obstaclesList = obstacles.copy()
@@ -86,6 +92,8 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         # path
         self.goalstate = None
         self.path = []
+        self.smoothPath = []
+
     
     # The next 2 methods generate random obstacles:
     
@@ -97,21 +105,51 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
     def makeobs(self): # creates the obstacles | AANPASSEN
         obs = []
 
+        obs6 = pygame.Rect((400,200), (100, 100))
+        obs5 = pygame.Rect((200,200), (50, 50))
+        obs4 = pygame.Rect((300,400), (50, 50))
+        obs3 = pygame.Rect((200,100), (50, 50))
+        obs2 = pygame.Rect((300,300), (50, 50))
+        obs1 = pygame.Rect((400,400), (50, 50))
+        hor3 = pygame.Rect((700,300), (100,50))
+        hor2 = pygame.Rect((800,100), (100,50))
+        hor1 = pygame.Rect((800,500), (100,50))
+        long3 = pygame.Rect((800,100), (50, 400))
+        long2 = pygame.Rect((600,0), (50, 400))
+        long1 = pygame.Rect((100,200), (50, 400))
+
+        obs.append(obs6)
+        obs.append(obs5)
+        obs.append(obs4)
+        obs.append(obs3)
+        obs.append(obs2)
+        obs.append(obs1)
+        obs.append(hor3)
+        obs.append(hor2)
+        obs.append(hor1)
+        obs.append(long3)
+        obs.append(long2)
+        obs.append(long1)
+
         for i in range(0, self.obsNum):
             rectang = None
             startgoalcol = True
+
             while startgoalcol:
+
                 upper = self.makeRandomRect()
                 rectang = pygame.Rect(upper, (self.obsDim, self.obsDim))
+
                 if rectang.collidepoint(self.start) or rectang.collidepoint(self.goal):
                     startgoalcol = True
                 else:
                     startgoalcol = False
-            obs.append(rectang)
+            #obs.append(rectang)
         self.obstacles = obs.copy()
+
         return obs
 
-    # The next 6 methods contain some node and edge tools
+    # The next 11 methods contain some node and edge operations
     def add_node(self, n, x, y): #stores a node in the lists. n = node index number
         self.x.insert(n, x)
         self.y.append(y)
@@ -161,11 +199,11 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                 return False
         return True
 
-    def crossObstacle(self, x1, x2, y1, y2): # Checks if an edge crosses an obstacle. Returns False when it collides, Free when it's free.
+    def crossObstacle(self, x1, x2, y1, y2): # Checks if an edge crosses an obstacle. Returns True when it collides, False when it's free.
         obs = self.obstacles.copy()
         while (len(obs) > 0):
             rectang = obs.pop(0)
-            for i in range(0, 101): # dit is een rechte lijn | STEERING FUNCTION INBOUWEN??????????????????
+            for i in range(0, 101):
                 u = i / 100
                 x = x1 * u + x2 * (1 - u)
                 y = y1 * u + y2 * (1 - u)
@@ -199,6 +237,8 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                 self.goalFlag = True
             else:
                 self.add_node(n, x, y) # otherwise, simply add node to tree
+                
+                
 
     def path_to_goal(self): # If goal has not been reached, return False. If goal has been reached: creates a list containing the path (from goal to start)
         if self.goalFlag:
@@ -217,6 +257,39 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             x, y = (self.x[node], self.y[node])
             pathCoords.append((x, y))
         return pathCoords
+
+    def B_spline(self): # smoothen out path to respect the steering function
+        x=[]
+        y=[]
+        
+        for point in self.path:
+            x.append(self.x[point])
+            y.append(self.y[point])
+        
+        tck, *rest = interpolate.splprep([x, y],s=8)
+        u = np.linspace(0, 1, num=(len(self.path)*10))
+        bspline=interpolate.splev(u, tck)
+        
+        return bspline #list [[x],[y]]
+
+    def getSmoothPathCoords(self): # Retrieve coordinates of the smooth path (to visualize it)
+        bspline = self.B_spline()
+        SmoothPathCoords = []
+        for i in reversed(range(len(bspline[0]))):
+            x, y = (bspline[0][i],bspline[1][i])
+            self.smoothPath.append((x, y))
+        
+        # collision check
+        obs = self.obstacles.copy()
+        while (len(obs) > 0):
+            rectang = obs.pop(0)
+            for i in range(len(self.smoothPath)):
+                if rectang.collidepoint(self.smoothPath[i][0], self.smoothPath[i][1]):
+                    print("Collision! Finding alternative.")
+                    error #This raises an error. Exception handling in RRT.py will make the script run again
+
+        return self.smoothPath # list [[x,y],[x,y],...] (500)
+
 
     def bias(self, ngoal): # Does a step straight towards the goal. This speeds up the algorithm when it is not used too much: now every 10th step (can be changed in RRT.py).
         n = self.number_of_nodes()
@@ -238,3 +311,5 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
 
     def cost(self):
         pass
+
+
