@@ -105,18 +105,48 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
     def makeobs(self): # creates the obstacles | AANPASSEN
         obs = []
 
+        obs6 = pygame.Rect((400,200), (100, 100))
+        obs5 = pygame.Rect((200,200), (50, 50))
+        obs4 = pygame.Rect((300,400), (50, 50))
+        obs3 = pygame.Rect((200,100), (50, 50))
+        obs2 = pygame.Rect((300,300), (50, 50))
+        obs1 = pygame.Rect((400,400), (50, 50))
+        hor3 = pygame.Rect((700,300), (100,50))
+        hor2 = pygame.Rect((800,100), (100,50))
+        hor1 = pygame.Rect((800,500), (100,50))
+        long3 = pygame.Rect((800,100), (50, 400))
+        long2 = pygame.Rect((600,0), (50, 400))
+        long1 = pygame.Rect((100,200), (50, 400))
+
+        obs.append(obs6)
+        obs.append(obs5)
+        obs.append(obs4)
+        obs.append(obs3)
+        obs.append(obs2)
+        obs.append(obs1)
+        obs.append(hor3)
+        obs.append(hor2)
+        obs.append(hor1)
+        obs.append(long3)
+        obs.append(long2)
+        obs.append(long1)
+
         for i in range(0, self.obsNum):
             rectang = None
             startgoalcol = True
+
             while startgoalcol:
+
                 upper = self.makeRandomRect()
                 rectang = pygame.Rect(upper, (self.obsDim, self.obsDim))
+
                 if rectang.collidepoint(self.start) or rectang.collidepoint(self.goal):
                     startgoalcol = True
                 else:
                     startgoalcol = False
-            obs.append(rectang)
+            #obs.append(rectang)
         self.obstacles = obs.copy()
+
         return obs
 
     # The next 11 methods contain some node and edge operations
