@@ -23,14 +23,14 @@ def PID(current_error,previous_error=0,integral_error=0,Kp=1,Ki=0,Kd=0):
 
 # constants
 k = 0.1  # look forward gain
-Lfc = 40.0  # [m] look-ahead distance
+Lfc = 30.0  # [m] look-ahead distance
 Kp = 1.0  # speed proportional gain
 
-WB = 30.0 #m
+WB = 20.0 #m
 l_r = WB/2.0
 l_f = WB-l_r
 dt = 0.1
-track = 20 #m
+track = 10 #m
 class TargetCourse:
 
     def __init__(self, cx, cy):
@@ -187,8 +187,8 @@ class KinematicBicycleModel():
         scaled_y = self.y * scaling_factor
 
         #draw back wheels
-        wheel_diam=8 #m
-        wheel_width=3 #m
+        wheel_diam=5 #m
+        wheel_width=2 #m
 
         scaled_wheel_diam = wheel_diam * scaling_factor
         scaled_wheel_width = wheel_width * scaling_factor

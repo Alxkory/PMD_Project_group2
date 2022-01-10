@@ -53,7 +53,7 @@ def main():
     SmoothPath = graph.getSmoothPathCoords()
     map.drawPath(SmoothPath)
     print('smoothpath found, ready to drive')
-    #pygame.display.update()
+    pygame.display.update()
     #pygame.event.clear()
     #pygame.event.wait(0)
     #time.sleep(5)
