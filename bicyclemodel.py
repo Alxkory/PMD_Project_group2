@@ -21,26 +21,79 @@ def PID(current_error,previous_error=0,integral_error=0,Kp=1,Ki=0,Kd=0):
     a = Kp * (current_error) + Kd*(previous_error) +Ki*(integral_error)
     return a
 
-def purepursuit():
-
-    throttle = 0
-    steering = 0
-    u = (throttle,steering)
-    return u
-
-def stanley():
-
-    throttle = 0
-    steering = 0
-    u = (throttle,steering)
-    return u
-
 # constants
-L = 3.0 #m
-l_r = L/2.0
-l_f = L-l_r
+k = 0.1  # look forward gain
+Lfc = 40.0  # [m] look-ahead distance
+Kp = 1.0  # speed proportional gain
+
+WB = 30.0 #m
+l_r = WB/2.0
+l_f = WB-l_r
 dt = 0.1
-track = 2 #m
+track = 20 #m
+class TargetCourse:
+
+    def __init__(self, cx, cy):
+        self.cx = cx
+        self.cy = cy
+        self.old_nearest_point_index = None
+
+    def search_target_index(self, state):
+
+        # To speed up nearest point search, doing it at only first time.
+        if self.old_nearest_point_index is None:
+            # search nearest point index
+            dx = [state.rear_x - icx for icx in self.cx]
+            dy = [state.rear_y - icy for icy in self.cy]
+            d = np.hypot(dx, dy)
+            ind = np.argmin(d)
+            self.old_nearest_point_index = ind
+        else:
+            ind = self.old_nearest_point_index
+            distance_this_index = state.calc_distance(self.cx[ind],
+                                                      self.cy[ind])
+            while True:
+                distance_next_index = state.calc_distance(self.cx[ind + 1],
+                                                          self.cy[ind + 1])
+                if distance_this_index < distance_next_index:
+                    break
+                ind = ind + 1 if (ind + 1) < len(self.cx) else ind
+                distance_this_index = distance_next_index
+            self.old_nearest_point_index = ind
+
+        Lf = k * state.v + Lfc  # update look ahead distance
+
+        # search look ahead target point index
+        while Lf > state.calc_distance(self.cx[ind], self.cy[ind]):
+            if (ind + 1) >= len(self.cx):
+                break  # not exceed goal
+            ind += 1
+
+        return ind, Lf
+
+
+def pure_pursuit_steer_control(state, trajectory, pind):
+    ind, Lf = trajectory.search_target_index(state)
+
+    if pind >= ind:
+        ind = pind
+
+    if ind < len(trajectory.cx):
+        tx = trajectory.cx[ind]
+        ty = trajectory.cy[ind]
+    else:  # toward goal
+        tx = trajectory.cx[-1]
+        ty = trajectory.cy[-1]
+        ind = len(trajectory.cx) - 1
+
+    alpha = np.arctan2(ty - state.rear_y, tx - state.rear_x) - state.yaw
+
+    delta = np.arctan2(2.0 * WB * np.sin(alpha) / Lf, 1.0)
+
+    return delta, ind
+
+
+
 # class definition
 class KinematicBicycleModel():
     def __init__(self, x=0.0, y=0.0, yaw=0.0, v=0.0,max_steer=0.25*np.pi):
@@ -49,6 +102,8 @@ class KinematicBicycleModel():
         self.yaw = yaw
         self.v = v
         self.max_steer = max_steer
+        self.rear_x = self.x - ((WB / 2) * np.cos(self.yaw))# added from pythonrobotics to assist purepursuit controller
+        self.rear_y = self.y - ((WB / 2) * np.sin(self.yaw))#
 
     def vehiclekinematics(self,s):
         x,y,psi,v,throttle,steering = s
@@ -76,6 +131,14 @@ class KinematicBicycleModel():
         self.x,self.y,self.yaw,self.v,_,_ = s_new
         # ensures yaw angle remains bound
         self.yaw = normalizeAngle(self.yaw)
+
+        self.rear_x = self.x - ((WB / 2) * np.cos(self.yaw)) # added from pythonrobotics to assist purepursuit controller
+        self.rear_y = self.y - ((WB / 2) * np.sin(self.yaw)) #
+
+    def calc_distance(self, point_x, point_y): # copied from pythonrobotics to assist purepursuit controller
+        dx = self.rear_x - point_x
+        dy = self.rear_y - point_y
+        return np.hypot(dx, dy)
 
     def draw_car(self,plot=None,delta=0.0,drawvel=True):
         #draw body #xy position needs to be adjusted
@@ -118,19 +181,19 @@ class KinematicBicycleModel():
         color_green = pygame.Color('green')
         color_orange = pygame.Color('orange')
 
-        scaling_factor = 10
+        scaling_factor = 1
 
         scaled_x = self.x * scaling_factor
         scaled_y = self.y * scaling_factor
 
         #draw back wheels
-        wheel_diam=0.8 #m
-        wheel_width=0.3 #m
+        wheel_diam=8 #m
+        wheel_width=3 #m
 
         scaled_wheel_diam = wheel_diam * scaling_factor
         scaled_wheel_width = wheel_width * scaling_factor
 
-        scaled_L = L * scaling_factor
+        scaled_L = WB * scaling_factor
         scaled_track = track * scaling_factor
 
         scaled_l_r = l_f * scaling_factor

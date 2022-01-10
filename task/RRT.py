@@ -45,24 +45,24 @@ def main():
     
     # Extract path
     SmoothPath = graph.getSmoothPathCoords()
-    
     map.drawPath(SmoothPath)
     pygame.display.update()
     pygame.event.clear()
     pygame.event.wait(0)
-    # time.sleep(5)
-    # pygame.display.quit()
-    # pygame.quit()
-    # exit()
+    #time.sleep(5)
+    #pygame.display.quit()
+    #pygame.quit()
+    #exit()
+    
     
 
     
 
     while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    exit()
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                exit()
 
 
 if __name__ == '__main__':
