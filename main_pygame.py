@@ -7,6 +7,7 @@ import numpy as np
 from bicyclemodel import KinematicBicycleModel
 from bicyclemodel import TargetCourse
 from bicyclemodel import pure_pursuit_steer_control
+from bicyclemodel import PID
 import sys
 import pygame
 from pygame.locals import *
@@ -44,7 +45,7 @@ def main():
     dt = bicyclemodel.dt
     #set initial time, set maximum time
     time = 0.0
-    T = 100
+    T = 200
     clock = pygame.time.Clock()
 
     target_ind, _ = target_course.search_target_index(car)
@@ -58,16 +59,13 @@ def main():
         if T<=time:
             running = False
             
-        if car.v < target_speed:
-            throttle = 1
-        elif car.v > target_speed:
-            throttle = -0.1
-        else:
-            throttle = 0
+        Kp = 1
 
         steering, target_ind = pure_pursuit_steer_control(
             car, target_course, target_ind)
 
+        throttle = PID(target_speed - car.v,Kp=1)
+        
         car.update(throttle,steering)
         time += dt
 
@@ -85,7 +83,7 @@ def main():
         #draw car
         car.draw_car_pygame(surface=window,delta=steering)
         # flip screen to get normal Y coordinate depiction
-        window.blit(pygame.transform.flip(window,False,True),(0,0))
+        #window.blit(pygame.transform.flip(window,False,True),(0,0))
 
         pygame.display.set_caption(f"x:{np.round(car.x, decimals=1)},y:{np.round(car.y, decimals=1)},yaw:{np.round(car.yaw, decimals=1)},v:{np.round(car.v, decimals=1)},delta:{np.round(steering, decimals=2)},time:{np.round(time, decimals=2)}")
         pygame.display.update()
