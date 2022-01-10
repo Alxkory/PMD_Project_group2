@@ -56,7 +56,7 @@ def main():
     pygame.display.update()
     #pygame.event.clear()
     #pygame.event.wait(0)
-    tm.sleep(5)
+    tm.sleep(1)
     #pygame.display.quit()
     #pygame.quit()
     #exit()
@@ -149,12 +149,12 @@ def main():
 if __name__ == '__main__':
     # Sometimes the RRT algorithm raises an error. 
     # This exception handling makes the algoritm try again (until the error doesn't uccur)
-    #result=False
-    #while not result:
-        #try:
+    result=False
+    while not result:
+        try:
             main()
             print("main finished")
             result=True
-        #except:
+        except:
             print('exeption occured')
             result=False
