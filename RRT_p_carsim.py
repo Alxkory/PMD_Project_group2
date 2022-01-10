@@ -53,16 +53,16 @@ def main():
     SmoothPath = graph.getSmoothPathCoords()
     map.drawPath(SmoothPath)
     print('smoothpath found, ready to drive')
-    pygame.display.update()
+    #pygame.display.update()
     #pygame.event.clear()
-    pygame.event.wait(0)
+    #pygame.event.wait(0)
     #time.sleep(5)
     #pygame.display.quit()
     #pygame.quit()
     #exit()
     print("setting targetcourse")
 
-    smoothpath_array = np.array(smoothPath)
+    smoothpath_array = np.array(SmoothPath)
     cx = (smoothpath_array.T)[0]
     cy = (smoothpath_array.T)[1]
     target_course = TargetCourse(cx, cy)
@@ -97,7 +97,7 @@ def main():
         throttle = PID(target_speed - car.v,Kp=1)
         
         car.update(throttle,steering)
-        print(f"running sim,sim-time: {time}")
+        #print(f"running sim,sim-time: {time}")
         time += dt
 
         max_steer = car.max_steer
@@ -135,6 +135,8 @@ if __name__ == '__main__':
     while not result:
         try:
             main()
+            print("main finished")
             result=True
         except:
+            print('exeption occured')
             result=False
