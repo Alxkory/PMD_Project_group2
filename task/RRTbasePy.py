@@ -194,17 +194,10 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         obs = self.obstacles.copy()
         while len(obs) > 0:
             rectang = obs.pop(0)
-            if rectang.collidepoint(x, y):
+            R = 20
+            if rectang.inflate(R, R).collidepoint(x, y):
                 self.remove_node(n) # remove node
                 return False
-            if False: # check in circle around xy       
-                    R = 20
-                    x_col = [(x + R*np.cos(theta)) for theta in np.linspace(0, 2.0*np.pi,10)]
-                    y_col = [(y + R*np.sin(theta)) for theta in np.linspace(0, 2.0*np.pi,10)]
-                    for j in range(len(x_col)):
-                        if rectang.collidepoint(x_col[j], y_col[j]):
-                            self.remove_node(n) # remove node
-                            return True
         return True
 
     def crossObstacle(self, x1, x2, y1, y2): # Checks if an edge crosses an obstacle. Returns True when it collides, False when it's free.
@@ -215,16 +208,9 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                 u = i / 100
                 x = x1 * u + x2 * (1 - u)
                 y = y1 * u + y2 * (1 - u)
-                
-                if rectang.collidepoint(x, y):
+                R = 20
+                if rectang.inflate(R, R).collidepoint(x, y):
                         return True
-                if False: # check in circle around xy       
-                    R = 20
-                    x_col = [(x + R*np.cos(theta)) for theta in np.linspace(0, 2.0*np.pi,10)]
-                    y_col = [(y + R*np.sin(theta)) for theta in np.linspace(0, 2.0*np.pi,10)]
-                    for j in range(len(x_col)):
-                        if rectang.collidepoint(x_col[j], y_col[j]):
-                            return True
         return False
 
     def connect(self, n1, n2):  # Connects 2 nodes and performs collision check
@@ -283,7 +269,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             y.append(self.y[point])
         
         tck, *rest = interpolate.splprep([x, y],s=8)
-        u = np.linspace(0, 1, num=(len(self.path)*15))
+        u = np.linspace(0, 1, num=(len(self.path)*20))
         bspline=interpolate.splev(u, tck)
         
         return bspline #list [[x],[y]]

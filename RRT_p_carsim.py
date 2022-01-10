@@ -68,6 +68,9 @@ def main():
     target_course = TargetCourse(cx, cy)
     course_points_np = np.array([cx,cy])
     course_points_pyg = (course_points_np.T).tolist()
+
+    
+
     print("init car")
     car = KinematicBicycleModel(x=start[0],y=start[1],yaw=0.0)
     dt = bicyclemodel.dt
