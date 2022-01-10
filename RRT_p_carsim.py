@@ -2,7 +2,7 @@
 import pygame
 from task.RRTbasePy import RRTGraph
 from task.RRTbasePy import RRTMap
-import time
+import time as tm
 # from sys import exit
 import bicyclemodel
 import numpy as np
@@ -14,8 +14,8 @@ from bicyclemodel import PID
 
 def main():
     dimensions = (600, 1000)
-    start = (0,300)
-    goal = (1000, 200)
+    start = (30,300)
+    goal = (970, 200)
     obsdim = 50
     obsnum = 20
     iteration = 0
@@ -26,7 +26,7 @@ def main():
 
     obstacles = graph.makeobs()
     map.drawMap(obstacles)
-
+    
     while (not graph.path_to_goal()): # iterate until goal is found
         pygame.display.set_caption(f"planning path, iterations: {iteration}")
         if iteration % 10 == 0: # 10% of all steps i straight towards the goal
@@ -44,7 +44,7 @@ def main():
         if iteration % 5 == 0:
         # if iteration % 1 == 0:
             pygame.display.update()
-            # time.sleep(0.15)
+            tm.sleep(0.001)
         iteration += 1
         
     
@@ -56,7 +56,7 @@ def main():
     pygame.display.update()
     #pygame.event.clear()
     #pygame.event.wait(0)
-    #time.sleep(5)
+    tm.sleep(5)
     #pygame.display.quit()
     #pygame.quit()
     #exit()
@@ -69,10 +69,12 @@ def main():
     course_points_np = np.array([cx,cy])
     course_points_pyg = (course_points_np.T).tolist()
 
-    
+    delta_x = cx[1] - cx[0]
+    delta_y = cy[1] - cy[0]
+    yaw = np.arctan2(delta_y, delta_x)
 
     print("init car")
-    car = KinematicBicycleModel(x=start[0],y=start[1],yaw=0.0)
+    car = KinematicBicycleModel(x=start[0],y=start[1],yaw=yaw)
     dt = bicyclemodel.dt
 
     target_speed = 100.0 / 3.6  # [m/s]
@@ -84,6 +86,8 @@ def main():
     target_ind, _ = target_course.search_target_index(car)
     print("start simulation")
     simulation_running = True
+    goal_reached = False
+
     while simulation_running:
         for event in pygame.event.get():
                     if event.type == pygame.QUIT: 
@@ -93,6 +97,14 @@ def main():
             running = False
 
         Kp = 1
+        
+        dist_to_goal = np.hypot(goal[0]-car.x,goal[1]-car.y) 
+        if dist_to_goal < 20:
+            print('goal reached')
+            goal_reached = True
+
+        if goal_reached:
+            simulation_running = False
 
         steering, target_ind = pure_pursuit_steer_control(
             car, target_course, target_ind)
@@ -124,6 +136,9 @@ def main():
         pygame.display.update()
         clock.tick(30)
 
+    pygame.display.update()
+    tm.sleep(5)
+
     #while True:
     #    for event in pygame.event.get():
     #        if event.type == pygame.QUIT:
@@ -134,12 +149,12 @@ def main():
 if __name__ == '__main__':
     # Sometimes the RRT algorithm raises an error. 
     # This exception handling makes the algoritm try again (until the error doesn't uccur)
-    result=False
-    while not result:
-        try:
+    #result=False
+    #while not result:
+        #try:
             main()
             print("main finished")
             result=True
-        except:
+        #except:
             print('exeption occured')
             result=False

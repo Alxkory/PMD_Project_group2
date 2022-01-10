@@ -56,7 +56,7 @@ class RRTMap: # for visualisation. Methods draw the map, obstacles and path
 
     def drawPath(self, path): # draws the path that has been found
         for node in path:
-            pygame.draw.circle(self.map, self.Red, node, self.nodeRad, 0) # was self.nodeRad+3
+            pygame.draw.circle(self.map, self.Red, node, self.nodeRad-1, 0) # was self.nodeRad+3
 
     def drawObs(self, obstacles): # draws obstacles
         obstaclesList = obstacles.copy()
@@ -194,7 +194,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         obs = self.obstacles.copy()
         while len(obs) > 0:
             rectang = obs.pop(0)
-            R = 20
+            R = 30
             if rectang.inflate(R, R).collidepoint(x, y):
                 self.remove_node(n) # remove node
                 return False
@@ -208,7 +208,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                 u = i / 100
                 x = x1 * u + x2 * (1 - u)
                 y = y1 * u + y2 * (1 - u)
-                R = 20
+                R = 30
                 if rectang.inflate(R, R).collidepoint(x, y):
                         return True
         return False
@@ -268,7 +268,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             x.append(self.x[point])
             y.append(self.y[point])
         
-        tck, *rest = interpolate.splprep([x, y],s=8)
+        tck, *rest = interpolate.splprep([x, y],s=10)
         u = np.linspace(0, 1, num=(len(self.path)*20))
         bspline=interpolate.splev(u, tck)
         

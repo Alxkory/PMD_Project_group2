@@ -23,7 +23,7 @@ def PID(current_error,previous_error=0,integral_error=0,Kp=1,Ki=0,Kd=0):
 
 # constants
 k = 0.1  # look forward gain
-Lfc = 30.0  # [m] look-ahead distance
+Lfc = 14.0  # [m] look-ahead distance
 Kp = 1.0  # speed proportional gain
 
 WB = 20.0 #m
@@ -187,8 +187,8 @@ class KinematicBicycleModel():
         scaled_y = self.y * scaling_factor
 
         #draw back wheels
-        wheel_diam=5 #m
-        wheel_width=2 #m
+        wheel_diam=8 #m
+        wheel_width=3 #m
 
         scaled_wheel_diam = wheel_diam * scaling_factor
         scaled_wheel_width = wheel_width * scaling_factor
@@ -210,9 +210,9 @@ class KinematicBicycleModel():
         b_wheel_y_l = (scaled_track/2)
         b_wheel_l = (getRotation(self.yaw) @ np.array([[b_wheel_x_l],[b_wheel_y_l]])) + np.array([[scaled_x],[scaled_y]])
 
-        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_r[0][0], b_wheel_r[1][0], self.yaw,color_green)
+        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_r[0][0], b_wheel_r[1][0], self.yaw,color_black)
 
-        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_l[0][0], b_wheel_l[1][0], self.yaw,color_green)
+        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_l[0][0], b_wheel_l[1][0], self.yaw,color_black)
         #draw front wheels
 
         f_wheel_x_r = (scaled_l_f)
@@ -223,9 +223,9 @@ class KinematicBicycleModel():
         f_wheel_y_l = (scaled_track/2)
         f_wheel_l = (getRotation(self.yaw) @ np.array([[f_wheel_x_l],[f_wheel_y_l]])) + np.array([[scaled_x],[scaled_y]])
 
-        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_l[0][0], f_wheel_l[1][0], self.yaw + delta,color_orange)
+        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_l[0][0], f_wheel_l[1][0], self.yaw + delta,color_black)
 
-        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_r[0][0], f_wheel_r[1][0], self.yaw + delta,color_orange)
+        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_r[0][0], f_wheel_r[1][0], self.yaw + delta,color_black)
         center_radius = scaling_factor * 0.3
         pygame.draw.circle(surface,color_black,(scaled_x,scaled_y),center_radius)
 
