@@ -10,9 +10,9 @@ from bicyclemodel import KinematicBicycleModel
 from bicyclemodel import TargetCourse
 from bicyclemodel import pure_pursuit_steer_control
 from bicyclemodel import PID
+import pandas as pd
 
-
-def main():
+def RRT_p_simulation(rectangle_inflation):
     dimensions = (600, 1000)
     start = (30,300)
     goal = (970, 200)
@@ -21,8 +21,9 @@ def main():
     iteration = 0
 
     pygame.init()
-    map = RRTMap(start, goal, dimensions, obsdim, obsnum)
-    graph = RRTGraph(start, goal, dimensions, obsdim, obsnum)
+    starttime = tm.time()
+    map = RRTMap(start, goal, dimensions, obsdim, obsnum,rectangle_inflation)
+    graph = RRTGraph(start, goal, dimensions, obsdim, obsnum,rectangle_inflation)
 
     obstacles = graph.makeobs()
     map.drawMap(obstacles)
@@ -44,10 +45,11 @@ def main():
         if iteration % 5 == 0:
         # if iteration % 1 == 0:
             pygame.display.update()
-            tm.sleep(0.001)
+            #tm.sleep(0.001)
         iteration += 1
-        
-    
+    endtime = tm.time()
+    RRT_solution_time = endtime - starttime
+    num_iter = iteration
     
     # Extract path
     SmoothPath = graph.getSmoothPathCoords()
@@ -56,7 +58,7 @@ def main():
     pygame.display.update()
     #pygame.event.clear()
     #pygame.event.wait(0)
-    tm.sleep(5)
+    #tm.sleep(20)
     #pygame.display.quit()
     #pygame.quit()
     #exit()
@@ -81,20 +83,24 @@ def main():
 
     time = 0.0
     T = 200
-    clock = pygame.time.Clock()
+    #clock = pygame.time.Clock()
     
     target_ind, _ = target_course.search_target_index(car)
     print("start simulation")
     simulation_running = True
     goal_reached = False
+    collision_occured = False
+    out_of_time = False
 
     while simulation_running:
         for event in pygame.event.get():
                     if event.type == pygame.QUIT: 
                         running = False
 
-        if T<=time:
-            running = False
+        if time > T:
+            print("out of time")
+            out_of_time = True
+            simulation_running = False
 
         Kp = 1
         
@@ -128,33 +134,81 @@ def main():
         # draw target
         pygame.draw.circle(map.map, pygame.Color("green"), (cx[target_ind],cy[target_ind]), 3)
         #draw car
-        car.draw_car_pygame(surface=map.map,delta=steering)
+        collision_bool = car.draw_car_pygame(surface=map.map,delta=steering,obstacles=obstacles)
         # flip screen to get normal Y coordinate depiction
         #window.blit(pygame.transform.flip(window,False,True),(0,0))
+        if collision_bool:
+            collision_occured = True
 
         pygame.display.set_caption(f"x:{np.round(car.x, decimals=1)},y:{np.round(car.y, decimals=1)},yaw:{np.round(car.yaw, decimals=1)},v:{np.round(car.v, decimals=1)},delta:{np.round(steering, decimals=2)},time:{np.round(time, decimals=2)}")
         pygame.display.update()
-        clock.tick(30)
+        #clock.tick(30)
 
     pygame.display.update()
-    tm.sleep(5)
+    #tm.sleep(5)
 
     #while True:
     #    for event in pygame.event.get():
     #        if event.type == pygame.QUIT:
     #            pygame.quit()
     #            exit()
+    return num_iter,RRT_solution_time,collision_occured,out_of_time
 
 
 if __name__ == '__main__':
+    num_sims = 3
+
+    simulation_number_list = []
+    rectangle_inflation_param_list = []
+    number_of_iterations_list = []
+    RRT_solution_time_list = []
+    collision_occured_list = []
+    planner_successful_list = []
+    out_of_time_list = []
+    for i in range(num_sims):
+        rectangle_inflation = 10*(i % 7)
+        num_iter = None
+        pathplanner_successful = None
+        RRT_solution_time = None
+        collision_occured = None
+        out_of_time = False
+        try:
+            num_iter,RRT_solution_time,collision_occured,out_of_time = RRT_p_simulation(rectangle_inflation)
+            pathplanner_successful = True
+        except:
+            print('solution failed')
+            pathplanner_successful = False
+
+        simulation_number_list.append(i)
+        rectangle_inflation_param_list.append(rectangle_inflation)
+        number_of_iterations_list.append(num_iter)
+        RRT_solution_time_list.append(RRT_solution_time)
+        collision_occured_list.append(collision_occured)
+        planner_successful_list.append(pathplanner_successful)
+        out_of_time_list.append(out_of_time)
+    df = pd.DataFrame(
+        {
+            "simulation_number": simulation_number_list,
+            "rectangle_inflation_param": rectangle_inflation_param_list,
+            "number_of_iterations":  number_of_iterations_list,
+            "RRT_solution_time": RRT_solution_time_list,
+            "collision_occured": collision_occured_list,
+            "planner_successful": planner_successful_list,
+            "out_of_time": out_of_time_list
+        }
+    
+    )    
+    #df.to_pickle("rrt_+_simulation_results.pkl")
+    
+    
     # Sometimes the RRT algorithm raises an error. 
     # This exception handling makes the algoritm try again (until the error doesn't uccur)
     #result=False
     #while not result:
-        #try:
-            main()
-            print("main finished")
-            result=True
-        #except:
-            print('exeption occured')
-            result=False
+    #    try:
+    #        main()
+    #        print("main finished")
+    #        result=True
+    #   except:
+    #        print('exeption occured')
+    #       result=False
