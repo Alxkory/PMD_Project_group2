@@ -156,7 +156,7 @@ def RRT_p_simulation(rectangle_inflation):
 
 
 if __name__ == '__main__':
-    num_sims = 3
+    num_sims = 100
 
     simulation_number_list = []
     rectangle_inflation_param_list = []
