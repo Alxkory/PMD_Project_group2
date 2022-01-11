@@ -23,7 +23,7 @@ def PID(current_error,previous_error=0,integral_error=0,Kp=1,Ki=0,Kd=0):
 
 # constants
 k = 0.1  # look forward gain
-Lfc = 14.0  # [m] look-ahead distance
+Lfc = 15.0  # [m] look-ahead distance
 Kp = 1.0  # speed proportional gain
 
 WB = 20.0 #m
@@ -175,7 +175,8 @@ class KinematicBicycleModel():
         if drawvel:
             plot.arrow(self.x,self.y,0.5*self.v*np.cos(self.yaw),0.5*self.v*np.sin(self.yaw),length_includes_head=True,hatch='|',ls='--')
 
-    def draw_car_pygame(self,surface=None,delta=0.0):
+    def draw_car_pygame(self,surface=None,delta=0.0,obstacles=None):
+        collision_bool = False
         color_red = pygame.Color('red')
         color_black = pygame.Color('black')
         color_green = pygame.Color('green')
@@ -200,7 +201,7 @@ class KinematicBicycleModel():
         scaled_l_f = l_f * scaling_factor
 
         #draw body #xy position needs to be adjusted
-        draw_rectangle_pygame(surface, scaled_L, scaled_track, scaled_x, scaled_y, self.yaw, color_red)# draw rectangular polygon
+        col_body = draw_rectangle_pygame(surface, scaled_L, scaled_track, scaled_x, scaled_y, self.yaw, color_red,obstacles)# draw rectangular polygon
         ...#draw coordinate of car as point back
         b_wheel_x_r = (-scaled_l_r)
         b_wheel_y_r = (-scaled_track/2)
@@ -210,9 +211,9 @@ class KinematicBicycleModel():
         b_wheel_y_l = (scaled_track/2)
         b_wheel_l = (getRotation(self.yaw) @ np.array([[b_wheel_x_l],[b_wheel_y_l]])) + np.array([[scaled_x],[scaled_y]])
 
-        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_r[0][0], b_wheel_r[1][0], self.yaw,color_black)
+        col_rb_wheel = draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_r[0][0], b_wheel_r[1][0], self.yaw,color_black,obstacles)
 
-        draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_l[0][0], b_wheel_l[1][0], self.yaw,color_black)
+        col_lb_wheel = draw_rectangle_pygame(surface,scaled_wheel_diam, scaled_wheel_width, b_wheel_l[0][0], b_wheel_l[1][0], self.yaw,color_black,obstacles)
         #draw front wheels
 
         f_wheel_x_r = (scaled_l_f)
@@ -223,11 +224,15 @@ class KinematicBicycleModel():
         f_wheel_y_l = (scaled_track/2)
         f_wheel_l = (getRotation(self.yaw) @ np.array([[f_wheel_x_l],[f_wheel_y_l]])) + np.array([[scaled_x],[scaled_y]])
 
-        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_l[0][0], f_wheel_l[1][0], self.yaw + delta,color_black)
+        col_rf_wheel = draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_l[0][0], f_wheel_l[1][0], self.yaw + delta,color_black,obstacles)
 
-        draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_r[0][0], f_wheel_r[1][0], self.yaw + delta,color_black)
+        col_lf_wheel = draw_rectangle_pygame(surface, scaled_wheel_diam, scaled_wheel_width, f_wheel_r[0][0], f_wheel_r[1][0], self.yaw + delta,color_black,obstacles)
         center_radius = scaling_factor * 0.3
         pygame.draw.circle(surface,color_black,(scaled_x,scaled_y),center_radius)
+
+        if col_body or col_lb_wheel or col_lf_wheel or col_rb_wheel or col_rf_wheel :
+            collision_bool = True
+        return collision_bool
 
 def draw_rectangle(plot,width,height,Xcenter,Ycenter,Yaw,color):
     xycorners = np.array([[width/2,-width/2,-width/2,width/2,width/2],     #x
@@ -241,7 +246,8 @@ def draw_rectangle(plot,width,height,Xcenter,Ycenter,Yaw,color):
     plot.plot(xycorners[0],xycorners[1],color=color)
     return None
 
-def draw_rectangle_pygame(surface,width,height,Xcenter,Ycenter,Yaw,color):
+def draw_rectangle_pygame(surface,width,height,Xcenter,Ycenter,Yaw,color,obstacles):
+    collision_flag = False
     xycorners = np.array([[width/2,-width/2,-width/2,width/2,width/2],     #x
                          [height/2,height/2,-height/2,-height/2,height/2]])#y
 
@@ -249,10 +255,19 @@ def draw_rectangle_pygame(surface,width,height,Xcenter,Ycenter,Yaw,color):
     centerarray = np.array([[Xcenter,Xcenter,Xcenter,Xcenter,Xcenter],
                              [Ycenter,Ycenter,Ycenter,Ycenter,Ycenter]])
     xycorners = xycorners + centerarray
-
     points = (xycorners.T).tolist()
+
+    obs = obstacles.copy()
+    while len(obs) > 0:
+        rectang = obs.pop(0)
+        for point in points:
+            x,y = point
+            if rectang.collidepoint(x, y):
+                
+                collision_flag = True
+    
     pygame.draw.polygon(surface,color,points)
-    return None
+    return collision_flag
 
 def normalizeAngle(angle):
     while angle > np.pi:

@@ -19,14 +19,16 @@ random.seed()
 
 # nodes are created on the go
 
+
+draw_inflation = True
 class RRTMap: # for visualisation. Methods draw the map, obstacles and path
-    def __init__(self, start, goal, MapDimensions, obsdim, obsnum):
+    def __init__(self, start, goal, MapDimensions, obsdim, obsnum,R):
         # setup variables
         self.start = start
         self.goal = goal
         self.MapDimensions = MapDimensions
         self.Maph, self.Mapw = self.MapDimensions
-
+        self.R=R
         # window settings
         self.MapWindowName = 'RRT path planning'
         pygame.display.set_caption(self.MapWindowName)
@@ -46,6 +48,7 @@ class RRTMap: # for visualisation. Methods draw the map, obstacles and path
         self.Green = (0, 255, 0)
         self.Red = (255, 0, 0)
         self.white = (255, 255, 255)
+        self.transparent_grey = (220,220,220)
 
     def drawMap(self, obstacles):
         pygame.draw.circle(self.map, self.Green,
@@ -60,20 +63,25 @@ class RRTMap: # for visualisation. Methods draw the map, obstacles and path
 
     def drawObs(self, obstacles): # draws obstacles
         obstaclesList = obstacles.copy()
+  
+        if draw_inflation:
+            while (len(obstaclesList) > 0):
+                obstacle = obstaclesList.pop(0)
+                pygame.draw.rect(self.map,self.transparent_grey,obstacle.inflate(self.R, self.R))
+        obstaclesList = obstacles.copy()
         while (len(obstaclesList) > 0):
             obstacle = obstaclesList.pop(0)
             pygame.draw.rect(self.map, self.grey, obstacle)
 
-
 class RRTGraph: # this class contains the methods that provide the RRT functionality
-    def __init__(self, start, goal, MapDimensions, obsdim, obsnum):
+    def __init__(self, start, goal, MapDimensions, obsdim, obsnum,R):
         (x, y) = start
         self.start = start
         self.goal = goal
         self.goalFlag = False # Set to True when goal is reached
         self.MapDimensions = MapDimensions
         self.maph, self.mapw = self.MapDimensions
-        
+        self.R = R
         # lists to store nodes that are added to the tree:
         self.x = [] # list to store the x coordinates
         self.y = [] # list to store the y coordinates
@@ -194,8 +202,8 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         obs = self.obstacles.copy()
         while len(obs) > 0:
             rectang = obs.pop(0)
-            R = 30
-            if rectang.inflate(R, R).collidepoint(x, y):
+            #R = 30
+            if rectang.inflate(self.R, self.R).collidepoint(x, y):
                 self.remove_node(n) # remove node
                 return False
         return True
@@ -208,8 +216,8 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
                 u = i / 100
                 x = x1 * u + x2 * (1 - u)
                 y = y1 * u + y2 * (1 - u)
-                R = 30
-                if rectang.inflate(R, R).collidepoint(x, y):
+                #R = 30
+                if rectang.inflate(self.R, self.R).collidepoint(x, y):
                         return True
         return False
 
@@ -268,7 +276,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
             x.append(self.x[point])
             y.append(self.y[point])
         
-        tck, *rest = interpolate.splprep([x, y],s=10)
+        tck, *rest = interpolate.splprep([x, y],s=100)
         u = np.linspace(0, 1, num=(len(self.path)*20))
         bspline=interpolate.splev(u, tck)
         
@@ -286,7 +294,7 @@ class RRTGraph: # this class contains the methods that provide the RRT functiona
         while (len(obs) > 0):
             rectang = obs.pop(0)
             for i in range(len(self.smoothPath)):
-                if rectang.collidepoint(self.smoothPath[i][0], self.smoothPath[i][1]):
+                if rectang.inflate(self.R,self.R).collidepoint(self.smoothPath[i][0], self.smoothPath[i][1]):
                     print("Collision! Finding alternative.")
                     error #This raises an error. Exception handling in RRT.py will make the script run again
 
