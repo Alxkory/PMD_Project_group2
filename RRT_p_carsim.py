@@ -197,8 +197,10 @@ if __name__ == '__main__':
             "out_of_time": out_of_time_list
         }
     
-    )    
-    #df.to_pickle("rrt_+_simulation_results.pkl")
+    )
+    save_to_pickle = False    
+    if save_to_pickle:
+        df.to_pickle("rrt_+_simulation_results.pkl")
     
     
     # Sometimes the RRT algorithm raises an error. 
