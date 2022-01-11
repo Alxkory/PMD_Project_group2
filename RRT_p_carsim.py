@@ -156,7 +156,7 @@ def RRT_p_simulation(rectangle_inflation):
 
 
 if __name__ == '__main__':
-    num_sims = 100
+    num_sims = 100 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
     simulation_number_list = []
     rectangle_inflation_param_list = []
@@ -166,7 +166,7 @@ if __name__ == '__main__':
     planner_successful_list = []
     out_of_time_list = []
     for i in range(num_sims):
-        rectangle_inflation = 10*(i % 7)
+        rectangle_inflation = 10*(i % 7) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
         num_iter = None
         pathplanner_successful = None
         RRT_solution_time = None
@@ -198,7 +198,7 @@ if __name__ == '__main__':
         }
     
     )
-    save_to_pickle = False    
+    save_to_pickle = False    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
     if save_to_pickle:
         df.to_pickle("rrt_+_simulation_results.pkl")
     
