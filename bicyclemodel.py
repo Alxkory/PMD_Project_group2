@@ -142,7 +142,7 @@ class KinematicBicycleModel():
 
     def draw_car(self,plot=None,delta=0.0,drawvel=True):
         #draw body #xy position needs to be adjusted
-        draw_rectangle(plot, L, 2, self.x, self.y, self.yaw,'red')
+        draw_rectangle(plot, WB, track, self.x, self.y, self.yaw,'red')
         #draw back wheels
         wheel_diam=0.8
         wheel_width=0.3
@@ -174,6 +174,7 @@ class KinematicBicycleModel():
 
         if drawvel:
             plot.arrow(self.x,self.y,0.5*self.v*np.cos(self.yaw),0.5*self.v*np.sin(self.yaw),length_includes_head=True,hatch='|',ls='--')
+
 
     def draw_car_pygame(self,surface=None,delta=0.0,obstacles=None):
         collision_bool = False
@@ -283,3 +284,40 @@ def getRotation(angle):
                        [np.sin(angle),np.cos(angle)]])        
 
     return matrix
+
+def draw_car_indep(state,plot=None,delta=0.0,drawvel=True):
+        #draw body #xy position needs to be adjusted
+        x,y,yaw,v = state
+        draw_rectangle(plot, WB, track, x, y, yaw,'red')
+        #draw back wheels
+        
+        wheel_diam=8
+        wheel_width=3
+        plot.scatter(x,y,s=100,marker='D',color='black')
+        b_wheel_x_r = (-l_r)
+        b_wheel_y_r = (-track/2)
+        b_wheel_r = (getRotation(yaw) @ np.array([[b_wheel_x_r],[b_wheel_y_r]])) + np.array([[x],[y]])
+        #print(b_wheel_r)
+        b_wheel_x_l = (-l_r)
+        b_wheel_y_l = (track/2)
+        b_wheel_l = (getRotation(yaw) @ np.array([[b_wheel_x_l],[b_wheel_y_l]])) + np.array([[x],[y]])
+        #print(b_wheel_l)
+        draw_rectangle(plot,wheel_diam ,wheel_width, b_wheel_r[0][0], b_wheel_r[1][0], yaw,'green')
+
+        draw_rectangle(plot,wheel_diam, wheel_width, b_wheel_l[0][0], b_wheel_l[1][0], yaw,'green')
+        #draw front wheels
+
+        f_wheel_x_r = (l_f)
+        f_wheel_y_r = (-track/2)
+        f_wheel_r = (getRotation(yaw) @ np.array([[f_wheel_x_r],[f_wheel_y_r]])) + np.array([[x],[y]])
+        #print(f_wheel_r)
+        f_wheel_x_l = (l_f)
+        f_wheel_y_l = (track/2)
+        f_wheel_l = (getRotation(yaw) @ np.array([[f_wheel_x_l],[f_wheel_y_l]])) + np.array([[x],[y]])
+        #print(f_wheel_l)
+        draw_rectangle(plot, wheel_diam, wheel_width, f_wheel_l[0][0], f_wheel_l[1][0], yaw + delta,'orange')
+
+        draw_rectangle(plot, wheel_diam, wheel_width, f_wheel_r[0][0], f_wheel_r[1][0], yaw + delta,'orange')
+
+        if drawvel:
+            plot.arrow(x,y,0.5*v*np.cos(yaw),0.5*v*np.sin(yaw),length_includes_head=True,hatch='|',ls='--')
