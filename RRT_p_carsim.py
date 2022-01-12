@@ -12,6 +12,9 @@ from bicyclemodel import pure_pursuit_steer_control
 from bicyclemodel import PID
 import pandas as pd
 
+#
+Run_for_metrics = False
+
 def RRT_p_simulation(rectangle_inflation):
     dimensions = (600, 1000)
     start = (30,300)
@@ -156,53 +159,63 @@ def RRT_p_simulation(rectangle_inflation):
 
 
 if __name__ == '__main__':
-    num_sims = 310 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
 
-    simulation_number_list = []
-    rectangle_inflation_param_list = []
-    number_of_iterations_list = []
-    RRT_solution_time_list = []
-    collision_occured_list = []
-    planner_successful_list = []
-    out_of_time_list = []
-    for i in range(num_sims):
-        print(i)
-        rectangle_inflation = 2*(i % 31) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-        num_iter = None
-        pathplanner_successful = None
-        RRT_solution_time = None
-        collision_occured = None
-        out_of_time = False
-        try:
-            num_iter,RRT_solution_time,collision_occured,out_of_time = RRT_p_simulation(rectangle_inflation)
-            pathplanner_successful = True
-        except:
-            print('solution failed')
-            pathplanner_successful = False
+    if Run_for_metrics:
+        num_sims = 310 # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        simulation_number_list = []
+        rectangle_inflation_param_list = []
+        number_of_iterations_list = []
+        RRT_solution_time_list = []
+        collision_occured_list = []
+        planner_successful_list = []
+        out_of_time_list = []
+        for i in range(num_sims):
+            print(i)
+            rectangle_inflation = 2*(i % 31) # <<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+            num_iter = None
+            pathplanner_successful = None
+            RRT_solution_time = None
+            collision_occured = None
+            out_of_time = False
+            try:
+                num_iter,RRT_solution_time,collision_occured,out_of_time = RRT_p_simulation(rectangle_inflation)
+                pathplanner_successful = True
+            except:
+                print('solution failed')
+                pathplanner_successful = False
 
-        simulation_number_list.append(i)
-        rectangle_inflation_param_list.append(rectangle_inflation)
-        number_of_iterations_list.append(num_iter)
-        RRT_solution_time_list.append(RRT_solution_time)
-        collision_occured_list.append(collision_occured)
-        planner_successful_list.append(pathplanner_successful)
-        out_of_time_list.append(out_of_time)
-    df = pd.DataFrame(
-        {
-            "simulation_number": simulation_number_list,
-            "rectangle_inflation_param": rectangle_inflation_param_list,
-            "number_of_iterations":  number_of_iterations_list,
-            "RRT_solution_time": RRT_solution_time_list,
-            "collision_occured": collision_occured_list,
-            "planner_successful": planner_successful_list,
-            "out_of_time": out_of_time_list
-        }
-    
-    )
-    save_to_pickle = True    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
-    if save_to_pickle:
-        df.to_pickle("rrt_+_simulation_results.pkl")
-    
+            simulation_number_list.append(i)
+            rectangle_inflation_param_list.append(rectangle_inflation)
+            number_of_iterations_list.append(num_iter)
+            RRT_solution_time_list.append(RRT_solution_time)
+            collision_occured_list.append(collision_occured)
+            planner_successful_list.append(pathplanner_successful)
+            out_of_time_list.append(out_of_time)
+        df = pd.DataFrame(
+            {
+                "simulation_number": simulation_number_list,
+                "rectangle_inflation_param": rectangle_inflation_param_list,
+                "number_of_iterations":  number_of_iterations_list,
+                "RRT_solution_time": RRT_solution_time_list,
+                "collision_occured": collision_occured_list,
+                "planner_successful": planner_successful_list,
+                "out_of_time": out_of_time_list
+            }
+
+        )
+        save_to_pickle = True    #<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<
+        if save_to_pickle:
+            df.to_pickle("rrt_+_simulation_results.pkl")
+    else:
+        result = False
+        while not result:
+            try:
+                rectangle_inflation = 30
+                RRT_p_simulation(rectangle_inflation)
+                result = True
+            except:
+                print('solution failed')
+                result = False
     
     # Sometimes the RRT algorithm raises an error. 
     # This exception handling makes the algoritm try again (until the error doesn't uccur)
